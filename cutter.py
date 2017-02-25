@@ -24,4 +24,4 @@ for path in svg.paths:
     if len(path) < 10:
         print "trivial path: " + str(path).replace("\n","")
 
-#svg.save_as(filename_save)
+svg.save_as(filename_save)
