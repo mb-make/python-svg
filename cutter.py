@@ -19,22 +19,40 @@ filename_save = argv[2]
 # import SVG
 svg = SVG(filename_open)
 
+# split path into closed paths
 svg.break_apart()
 
-index = 0
-while (index < len(svg.paths)):
-    path = svg.paths[index]
+# find short path, assume it to be a cut path
+for path in svg.paths:
     if len(path) < 10:
         print "rewriting short cut path: \n\t" + str(path.d)
+
+        # extract relevant coordinates
         a = path.d.min_x()
         b = path.d.max_x()
         y = path.d.min_y()
+
         # rewrite path
         s = "M "+str(a)+","+str(y)+" L "+str(b)+","+str(y)
         print "\t"+s
         path.d = D(s)
-        index += 1
-    else:
-        index += 1
 
+# find the maximum and minimum y coordinates from all paths
+min_y = None
+max_y = None
+for path in svg.paths:
+    # minimum y
+    y = path.d.min_y()
+    if (min_y == None) or (y < min_y):
+        min_y = y
+
+    # maximum y
+    y = path.d.max_y()
+    if (max_y == None) or (y > max_y):
+        max_y = y
+
+print min_y
+print max_y
+
+# export SVG
 svg.save_as(filename_save)
