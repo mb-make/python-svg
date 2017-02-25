@@ -6,6 +6,7 @@
 
 from sys import argv
 from svg import *
+from path_d import *
 
 # get filenames from console arguments
 if len(argv) < 3:
@@ -24,8 +25,15 @@ index = 0
 while (index < len(svg.paths)):
     path = svg.paths[index]
     if len(path) < 10:
-        print "removing very short path: " + str(path).replace("\n","")
-        svg.paths.remove(path)
+        print "rewriting short cut path: \n\t" + str(path.d)
+        a = path.d.min_x()
+        b = path.d.max_x()
+        y = path.d.min_y()
+        # rewrite path
+        s = "M "+str(a)+","+str(y)+" L "+str(b)+","+str(y)
+        print "\t"+s
+        path.d = D(s)
+        index += 1
     else:
         index += 1
 

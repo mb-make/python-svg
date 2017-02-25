@@ -43,6 +43,9 @@ class D:
             if (q < len(s)) and ("-0123456789".find(s[q]) != -1):
                 # has number arguments
                 e = s.find(" ", q)
+                if e < q:
+                    # string does apparently not end with a space
+                    e = len(s)
                 this.segments.append( Segment(s[p:e]) )
                 p = e + 1
             else:
@@ -61,3 +64,38 @@ class D:
     #
     def __str__(this):
         return " ".join([str(segment) for segment in this.segments])
+
+    #
+    # min/max functions
+    #
+    def min_x(this):
+        result = None
+        for segment in this.segments:
+            if "ML".find(segment.type) > -1:
+                if (result == None) or (segment.x < result):
+                    result = segment.x
+        return result
+
+    def max_x(this):
+        result = None
+        for segment in this.segments:
+            if "ML".find(segment.type) > -1:
+                if (result == None) or (segment.x > result):
+                    result = segment.x
+        return result
+
+    def min_y(this):
+        result = None
+        for segment in this.segments:
+            if "ML".find(segment.type) > -1:
+                if (result == None) or (segment.y < result):
+                    result = segment.y
+        return result
+
+    def max_y(this):
+        result = None
+        for segment in this.segments:
+            if "ML".find(segment.type) > -1:
+                if (result == None) or (segment.y > result):
+                    result = segment.y
+        return result
