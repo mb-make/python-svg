@@ -22,6 +22,9 @@ class Path:
             this.d = d
             this.epilogue = epilogue
 
+        if (this.epilogue.find(">") == -1):
+            this.epilogue += "/>"
+
     #
     # export path as string
     #
@@ -45,7 +48,7 @@ class Path:
         # d="M ... z" is one closed path
         p = d.find("M ")
         while (p > -1):
-            q = d.find(" z", p) + 2
+            q = min(d.find(" z", p) + 2, d.find("M ", p+1))
             paths.append( Path(None, D(d[p:q]), this.epilogue) )
             p = d.find("M ", q)
 
