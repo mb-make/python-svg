@@ -16,7 +16,7 @@ class Path:
             a = s.find("d=\"") + 3
             b = s.find("\"", a)
             this.d = D(s[a:b])
-            this.epilogue = s[b+1:]
+            this.epilogue = s[b+1:].strip("\n")
         else:
             # define attributes directly
             this.d = d

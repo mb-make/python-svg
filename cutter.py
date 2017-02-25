@@ -20,8 +20,13 @@ svg = SVG(filename_open)
 
 svg.break_apart()
 
-for path in svg.paths:
+index = 0
+while (index < len(svg.paths)):
+    path = svg.paths[index]
     if len(path) < 10:
-        print "trivial path: " + str(path).replace("\n","")
+        print "removing very short path: " + str(path).replace("\n","")
+        svg.paths.remove(path)
+    else:
+        index += 1
 
 svg.save_as(filename_save)
