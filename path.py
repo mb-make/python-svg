@@ -59,7 +59,9 @@ class Path:
             if segment.type == 'z' \
             or segment.type == 'Z':
                 # path is complete, cut!
+                new_path.epilogue = this.epilogue
                 paths.append(new_path)
+                # proceed with new path
                 new_path = Path()
 
         return paths
