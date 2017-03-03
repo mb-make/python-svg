@@ -7,12 +7,18 @@ class Segment:
     #
     # parse segment from string
     #
-    def __init__(this, s):
+    def __init__(this, s, a=None, b=None):
         s = s.strip()
 
         this.type = s[0]
 
-        if "mMlL".find(this.type) > -1:
+        if a != None:
+            # explicit intialization
+            this.x = a
+            this.y = b
+
+        elif "mMlL".find(this.type) > -1:
+            # parse from string
             c = s.split(" ")[1].split(",")
             this.x = float(c[0])
             this.y = float(c[1])
