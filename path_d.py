@@ -12,7 +12,8 @@ class Segment:
 
         this.type = s[0]
 
-        if s.find(",") > -1:
+        print "Segment type: "+s[0]
+        if "mMlL".find(s) > -1:
             c = s.split(" ")[1].split(",")
             this.x = float(c[0])
             this.y = float(c[1])
@@ -21,7 +22,7 @@ class Segment:
     # convert segment back to string
     #
     def __str__(this):
-        if "ML".find(this.type) > -1:
+        if "mMlL".find(this.type) > -1:
             return this.type + " " + str(this.x) + "," + str(this.y)
         # else: return only the type
         return this.type
@@ -33,10 +34,11 @@ class D:
     def __init__(this, s):
         s = s.strip()
         this.segments = []
+        print "Parsing d: "+s
         p = 0
         while p < len(s):
             # search for beginning of next segment
-            while (p < len(s)) and ("MLz".find(s[p]) == -1):
+            while (p < len(s)) and ("mMlLzZ".find(s[p]) == -1):
                 p += 1
 
             q = p + 2

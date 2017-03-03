@@ -4,6 +4,7 @@
 #
 
 from path import *
+from rect import *
 
 class SVG:
     def __init__(this, filename):
@@ -15,24 +16,44 @@ class SVG:
 
         this.epilogue = "</svg>\n"
 
-        this.parse_paths()
+        this.populate_elements()
 
-    def parse_paths(this):
+    def populate_elements(this):
         # begin with empty list
-        this.paths = []
+        this.elements = []
 
-        p = this.svg.find("<path ")
+        # find first element in SVG DOM
+        p = this.svg.find("<")
         while (p > -1):
-            e = this.svg.find("/>", p) + 2
-            this.paths.append( Path(this.svg[p:e]) )
+            q = this.svg.find(' ', p)
+            e = this.svg.find(">", p)
 
-            # find next path
-            q = p + 5
-            p = this.svg.find("<path ", q)
+            t = this.svg[p+1:min(q,e)].strip()
 
+            s = this.svg[p:e+1]
+            print "Found element type '"+t+"': '"+s+"'"
+
+            if t == "path":
+                this.elements.append( Path(s) )
+            elif t == "rect":
+                this.elements.append( Rect(s) )
+            else:
+                print "Disregarding..."
+
+            # find next element in SVG DOM
+            p = this.svg.find("<", e)
+
+    #
+    # export as string
+    #
     def __str__(this):
-        return this.preamble + "\n".join([str(path) for path in this.paths]) + this.epilogue
+        return this.preamble \
+            + "\n".join([str(e) for e in this.elements]) \
+            + this.epilogue
 
+    #
+    # save string to file
+    #
     def save_as(this, filename):
         open(filename, "w").write(str(this))
 
@@ -41,8 +62,8 @@ class SVG:
     # into connected paths
     #
     def break_apart(this):
-        # already several paths
-        if (len(this.paths) > 1):
-            return
-
-        this.paths = this.paths[0].split()
+        oldlist = this.elements
+        for e in oldlist:
+            if e.__class__.__name__ == path.__class__.__name__:
+                this.elements.append( e.split() )
+                this.elements.remove(e)

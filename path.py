@@ -29,7 +29,7 @@ class Path:
     # export path as string
     #
     def __str__(this):
-        return "<path d=\"" + str(this.d) + "\"" + this.epilogue + "\n"
+        return "<path d=\"" + str(this.d) + "\"" + this.epilogue
 
     #
     # return the number of path segments (M,L,z)
