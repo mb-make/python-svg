@@ -31,14 +31,13 @@ class SVG:
             t = this.svg[p+1:min(q,e)].strip()
 
             s = this.svg[p:e+1]
-            print "Found element type '"+t+"': '"+s+"'"
 
             if t == "path":
+                print "Found path: '"+s+"'"
                 this.elements.append( Path(s) )
             elif t == "rect":
+                print "Found rect: '"+s+"'"
                 this.elements.append( Rect(s) )
-            else:
-                print "Disregarding..."
 
             # find next element in SVG DOM
             p = this.svg.find("<", e)
@@ -64,6 +63,6 @@ class SVG:
     def break_apart(this):
         oldlist = this.elements
         for e in oldlist:
-            if e.__class__.__name__ == path.__class__.__name__:
-                this.elements.append( e.split() )
+            if e.__class__.__name__ == Path.__name__:
+                this.elements.extend( e.split() )
                 this.elements.remove(e)

@@ -12,8 +12,7 @@ class Segment:
 
         this.type = s[0]
 
-        print "Segment type: "+s[0]
-        if "mMlL".find(s) > -1:
+        if "mMlL".find(this.type) > -1:
             c = s.split(" ")[1].split(",")
             this.x = float(c[0])
             this.y = float(c[1])
@@ -29,31 +28,36 @@ class Segment:
 
 class D:
     #
-    # parse path definition from string
+    # initialize path data
     #
-    def __init__(this, s):
-        s = s.strip()
+    def __init__(this, s=None):
+        # initialize empty
         this.segments = []
-        print "Parsing d: "+s
-        p = 0
-        while p < len(s):
-            # search for beginning of next segment
-            while (p < len(s)) and ("mMlLzZ".find(s[p]) == -1):
-                p += 1
 
-            q = p + 2
-            if (q < len(s)) and ("-0123456789".find(s[q]) != -1):
-                # has number arguments
-                e = s.find(" ", q)
-                if e < q:
-                    # string does apparently not end with a space
-                    e = len(s)
-                this.segments.append( Segment(s[p:e]) )
-                p = e + 1
-            else:
-                # has no number args
-                this.segments.append( Segment(s[p:p+2]) )
-                p = q
+        if s != None:
+            s = s.strip()
+            print "Parsing d: "+s
+            # parser cursor
+            p = 0
+            while p < len(s):
+                # search for beginning of next segment
+                while (p < len(s)) and ("mMlLzZ".find(s[p]) == -1):
+                    p += 1
+
+                # what's there after one space?
+                q = p + 2
+                if (q < len(s)) and ("-0123456789".find(s[q]) != -1):
+                    # has number arguments
+                    e = s.find(" ", q)
+                    if e < q:
+                        # string does apparently not end with a space
+                        e = len(s)
+                    this.segments.append( Segment(s[p:e]) )
+                    p = e + 1
+                else:
+                    # has no number args
+                    this.segments.append( Segment(s[p:p+2]) )
+                    p = q
 
     #
     # return number of segments in this path description
