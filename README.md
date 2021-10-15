@@ -19,7 +19,7 @@ The library shall enable jQuery-like search for SVG DOM elements and support bas
 
 ### Transformations
 
-* apply transform attributes: matrix, rotate
+* apply transform attributes: matrix, rotate, translate
 * flatten: convert all elements' coordinates to absolute values by traversing the DOM and applying all transform attributes
 
 ### Path parsing

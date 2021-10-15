@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
-# Library to work with SVGs exported from OpenSCAD
+# Library to enable scripting of simple operations on SVGs
+# especially SVGs exported from OpenSCAD
 #
 
 from path import *
