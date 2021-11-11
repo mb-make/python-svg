@@ -1,69 +1,108 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Library to enable scripting of simple operations on SVGs
 # especially SVGs exported from OpenSCAD
 #
 
-from path import *
-from rect import *
+import xml.sax
+from path import Path
 
-class SVG:
-    def __init__(this, filename):
-        # parse from file
-        this.svg = open(filename).read()
-
-        first_occurence_of_a_path = this.svg.find("<path ")
-        this.preamble = this.svg[:first_occurence_of_a_path]
-
-        this.epilogue = "</svg>\n"
-
-        this.populate_elements()
-
-    def populate_elements(this):
-        # begin with empty list
-        this.elements = []
-
-        # find first element in SVG DOM
-        p = this.svg.find("<")
-        while (p > -1):
-            q = this.svg.find(' ', p)
-            e = this.svg.find(">", p)
-
-            t = this.svg[p+1:min(q,e)].strip()
-
-            s = this.svg[p:e+1]
-
-            if t == "path":
-                print "Found path: '"+s+"'"
-                this.elements.append( Path(s) )
-            elif t == "rect":
-                print "Found rect: '"+s+"'"
-                this.elements.append( Rect(s) )
-
-            # find next element in SVG DOM
-            p = this.svg.find("<", e)
+#
+# The SVG class is a derivative of the XML parser handler class.
+# It is capable of handling parser events and
+# also stores relevant information.
+#
+class SVG(xml.sax.ContentHandler):
+    def __init__(self, filename=None, debug=False):
+        self.debug = debug
+        if filename is None:
+            self.clear()
+        else:
+            self.load(filename)
 
     #
-    # export as string
+    # Reset object, delete all stored information
     #
-    def __str__(this):
-        return this.preamble \
-            + "\n".join([str(e) for e in this.elements]) \
-            + this.epilogue
+    def clear(self):
+        #super.__init__()
+        # Cursor is currently inside how many tags with closing tags:
+        self.descentLevel = 0
+        # The list of parents at the momentary position during parsing
+        self.currentParents = []
+        # A list of all the paths inside the SVG for convenient access
+        self.paths = []
 
     #
-    # save string to file
+    # Load SVG from file
     #
-    def save_as(this, filename):
-        open(filename, "w").write(str(this))
+    def load(self, filename):
+        self.clear()
+
+        # create an XMLReader
+        parser = xml.sax.make_parser()
+        # turn off namepsaces
+        parser.setFeature(xml.sax.handler.feature_namespaces, 0)
+
+        # override the default ContextHandler
+        parser.setContentHandler(self)
+        parser.parse(filename)
+
+        print("Parser found ${:d} paths.".format(len(svg.paths)))
 
     #
-    # Split the one mega-path, which OpenSCAD exports,
-    # into connected paths
+    # During parsing: returns the last encountered tag requiring a closing tag
     #
-    def break_apart(this):
-        oldlist = this.elements
-        for e in oldlist:
-            if e.__class__.__name__ == Path.__name__:
-                this.elements.extend( e.split() )
-                this.elements.remove(e)
+    def getCurrentParent(self):
+        l = len(self.currentParents)
+        if l == 0:
+            return None
+        else:
+            return self.currentParents[l-1]
+
+    #
+    # XML parser callback: an element starts
+    #
+    def startElement(self, tag, attributes):
+        #e = SVGElement(tag, attributes)
+        if tag == "path":
+            self.addPath(attributes)
+        elif tag == "g":
+            self.parserDescend(attributes)
+
+    #
+    # XML parser callback: an elements ends
+    #
+    def endElement(self, tag):
+        if tag == "g":
+            self.parserAscend()
+
+    #
+    # XML parser callback: tag content is read
+    #
+    def characters(self, content):
+        #print(content)
+        return
+
+    def parserDescend(self, attributes):
+        self.descentLevel += 1
+        if self.debug:
+            id = attributes["id"] if "id" in attributes else ""
+            print("Begin group ", id, "; descending to level ", self.descentLevel)
+        g = Group(attributes, debug=self.debug)
+        self.currentParents.append(g)
+
+    def parserAscend(self):
+        if len(self.currentParents) > 0:
+            self.currentParents.pop(len(self.currentParents)-1)
+        self.descentLevel -= 1
+        if self.debug:
+            print("End group; ascending to level: ", self.descentLevel)
+
+    def addPath(self, attributes):
+        if self.debug:
+            id = attributes["id"]
+            print("Path id=", id)
+        p = Path(attributes, self.currentParents, debug=self.debug)
+        self.paths.append(p)
+        if self.debug:
+            print("Parents: ", len(p.parents), "; command count: ", p.cmdCount)
