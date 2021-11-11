@@ -3,7 +3,19 @@
 # Use regular expressions for parsing
 import re
 
-rFloat = re.compile("([\+\-]*[0-9]+\.[0-9]+|[\+\-]*[0-9]+)")
+# Comma before and after "E"
+rFv1 = "[\+\-]*[0-9]+\.[0-9]+[eE]{1}[\+\-]*[0-9]+\.[0-9]+"
+# Comma before "E"
+rFv2 = "[\+\-]*[0-9]+\.[0-9]+[eE]{1}[\+\-]*[0-9]+"
+# Comma after "E"; not supported
+#rFv3 = "[\+\-]*[0-9]+[eE]{1}[\+\-]*[0-9]+\.[0-9]+"
+# No comma neither before nor after "E"
+rFv4 = "[\+\-]*[0-9]+[eE]{1}[\+\-]*[0-9]+"
+# Comma, but no "E"
+rFnoE = "[\+\-]*[0-9]+\.[0-9]+"
+# No comma, no "E"
+rFint = "[\+\-]*[0-9]+"
+rFloat = re.compile("("+rFv1+"|"+rFv2+"|"+rFv4+"|"+rFnoE+"|"+rFint+")")
 rOps = re.compile("([a-zA-Z]+)[^\(\)]*\([^\(\)]*\)")
 rArgs = re.compile("\(([^\(\)]*)\)")
 rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([\+\-0-9eE\.\,\; \t]*)\)")
@@ -13,7 +25,8 @@ rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([\
 # Class to store/handle SVG element transformations
 #
 class SVGTransformList():
-    def __init__(self, element=None, parseFromString=None):
+    def __init__(self, element=None, parseFromString=None, debug=False):
+        self.debug = debug
         self.element = element
         self.clear()
         if  not (parseFromString is None):
@@ -22,20 +35,20 @@ class SVGTransformList():
     def clear(self):
         self.transformations = []
 
-    def parseFromString(self, s, debug=True):
+    def parseFromString(self, s):
         self.clear()
         # Use regular expression to separate individual transformations.
         # Transformations are separated by whitespace and/or comma.
         # Keep illegal lists/arguments.
         mTransform = rTransform.findall(s)
-        if debug:
+        if self.debug:
             print("Parsed transformations: {:s}".format(str(mTransform)))
         mOps = rOps.findall(s)
-        if debug:
+        if self.debug:
             print("Validating operations: {:s}".format(str(mOps)))
         assert len(mOps) == len(mTransform)
         mArgs = rArgs.findall(s)
-        if debug:
+        if self.debug:
             print("Validating arguments: {:s}".format(str(mArgs)))
         assert len(mArgs) == len(mTransform)
 
@@ -49,9 +62,11 @@ class SVGTransformList():
             # Fallback
             t = "{:s}({:s})".format(mOps[i], mArgs[i])
             if mOps[i] == "rotate":
-                t = SVGTransformRotate(mTransform[i], debug=debug)
+                t = SVGTransformRotate(mTransform[i], debug=self.debug)
             elif mOps[i] == "translate":
-                t = SVGTransformTranslate(mTransform[i], debug=debug)
+                t = SVGTransformTranslate(mTransform[i], debug=self.debug)
+            elif mOps[i] == "matrix":
+                t = SVGTransformMatrix(mTransform[i], debug=self.debug)
             self.transformations += [t]
 
     # Export to string
@@ -59,7 +74,7 @@ class SVGTransformList():
         ts = []
         for t in self.transformations:
             ts.append(str(t))
-        return ",".join(ts)
+        return ", ".join(ts)
 
 
 #
@@ -86,6 +101,10 @@ class SVGTransformRotate():
         if debug:
             print("Parsed rotation angle is {:.2f} degrees.".format(self.angle))
 
+    def __str__(self):
+        return "rotate({:.3f})".format(self.angle)
+
+
 class SVGTransformTranslate():
     #
     # m is a regular expression match:
@@ -107,6 +126,32 @@ class SVGTransformTranslate():
         if debug:
             print("Parsed translation vector is ({:.2f}, {:.2f}).".format(self.tx, self.ty))
 
+    def __str__(self):
+        return "translate({:.3f}, {:.3f})".format(self.tx, self.ty)
+
+
+class SVGTransformMatrix():
+    #
+    # m is a regular expression match:
+    #  first element = operation, in this case: "matrix"
+    #  second element = arguments, in this case: six matrix components a-f
+    #
+    def __init__(self, m, debug=False):
+        arg = m[1]
+        if debug:
+            print("Parsing matrix components: \"{:s}\"".format(arg))
+        f = rFloat.findall(arg)
+        assert len(f) == 6
+        self.f = []
+        for i in range(6):
+            self.f += [float(f[i])]
+        if debug:
+            print("Parsed matrix is [[{:.2f}, {:.2f}, {:.2f}], [{:.2f}, {:.2f}, {:.2f}], [0, 0, 1]]."
+                .format(self.f[0], self.f[1], self.f[2], self.f[3], self.f[4], self.f[5]))
+
+    def __str__(self):
+        return "matrix({:s})".format(", ".join(["{:.3f}".format(x) for x in self.f]))
+
 
 #
 # Run some tests when executed standalone
@@ -118,14 +163,16 @@ if __name__ == "__main__":
     print("Result: 'transform=\"{:s}\"'".format(result))
     assert result == ""
 
-    print("Importing a valid transformation list...")
-    l = SVGTransformList(None, "rotate(+30);  translate( 20,-13.5 )\t, matrix(1e3 2 3 4 5 6)")
+    transform = "rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
+    print("Importing a valid transformation list: \"{:s}\"".format(transform))
+    l = SVGTransformList(None, transform)
     result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
-    assert result == "rotate(30)"
+    #assert result == "rotate(30)"
 
-    print("Importing an illegal transformation list...")
-    l = SVGTransformList(None, "test")
-    result = str(l)
-    print("Result: 'transform=\"{:s}\"'".format(result))
-    assert result == "test"
+    #print("Importing an illegal transformation list...")
+    #transform = "test ()"
+    #l = SVGTransformList(None, transform)
+    #result = str(l)
+    #print("Result: 'transform=\"{:s}\"'".format(result))
+    #assert result == "test"
