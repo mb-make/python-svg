@@ -8,7 +8,7 @@ import re
 # Class to store/handle SVG element transformations
 #
 class SVGTransformList():
-    def __init__(self, element, parseFromString=None):
+    def __init__(self, element=None, parseFromString=None):
         self.element = element
         self.clear()
         if  not (parseFromString is None):
@@ -21,8 +21,10 @@ class SVGTransformList():
         self.clear()
         # Use regular expression to separate individual transformations.
         # Transformations are separated by whitespace and/or comma.
-        r = re.compile("[a-zA-Z]+")
-        m = r.match("test")
+        # Keep illegal lists/arguments.
+        #r = re.compile("[a-zA-Z]+")
+        #m = r.match("test")
+        self.transformations += [s]
 
     # Export to string
     def __str__(self):
@@ -48,5 +50,14 @@ class SVGTransformRotate():
 # Run some tests when executed standalone
 #
 if __name__ == "__main__":
+    print("Importing an empty transformation list...")
     empty = SVGTransformList()
-    print("Empty transformation list: 'transform=\"{:s}\"'".format(str(empty)))
+    result = str(empty)
+    print("Result: 'transform=\"{:s}\"'".format(result))
+    assert result == ""
+
+    print("Importing an illegal transformation list...")
+    illegal = SVGTransformList(None, "test")
+    result = str(illegal)
+    print("Result: 'transform=\"{:s}\"'".format(result))
+    assert result == "test"
