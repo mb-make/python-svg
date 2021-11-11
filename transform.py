@@ -3,6 +3,11 @@
 # Use regular expressions for parsing
 import re
 
+rFloat = re.compile("([0-9]+|[0-9]+\.[0-9]+)")
+rOps = re.compile("([a-zA-Z]+)")
+rArgs = re.compile("\(([^\(\)]*)\)")
+rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([0-9\.\,\; \t]*)\)")
+
 
 #
 # Class to store/handle SVG element transformations
@@ -17,14 +22,34 @@ class SVGTransformList():
     def clear(self):
         self.transformations = []
 
-    def parseFromString(self, s):
+    def parseFromString(self, s, debug=True):
         self.clear()
         # Use regular expression to separate individual transformations.
         # Transformations are separated by whitespace and/or comma.
         # Keep illegal lists/arguments.
-        #r = re.compile("[a-zA-Z]+")
-        #m = r.match("test")
-        self.transformations += [s]
+        mTransform = rTransform.findall(s)
+        if debug:
+            print(mTransform)
+        mOps = rOps.findall(s)
+        if debug:
+            print(mOps)
+        mArgs = rArgs.findall(s)
+        if debug:
+            print(mArgs)
+
+        # Validate syntax
+        assert len(mOps) == len(mTransform)
+        for i in range(len(mTransform)):
+            assert mOps[i] == mTransform[i][0]
+            assert mArgs[i] == mTransform[i][1]
+
+        # Parse
+        for i in range(len(mTransform)):
+            # Fallback
+            t = "{:s}({:s})".format(mOps[i], mArgs[i])
+            if mOps[i] == "rotate":
+                t = SVGTransformRotate(mTransform[i], debug=debug)
+            self.transformations += [t]
 
     # Export to string
     def __str__(self):
@@ -41,9 +66,18 @@ class SVGTransformList():
 #
 
 class SVGTransformRotate():
-    def __init__(self, s):
-        a = s.find("(")
-        b = s.find(")", a)
+    #
+    # m is a regular expression match:
+    #  first element = operation, in this case: "rotate"
+    #  second element = argument, in this case: rotation angle in degrees
+    #
+    def __init__(self, m, debug=False):
+        arg = m[1]
+        if debug:
+            print("Debug: Parsing rotation angle: {:s}".format(arg))
+        self.angle = float(rFloat.match(arg).group())
+        if debug:
+            print("Debug: Rotation angle is {:.2f} degrees.".format(self.angle))
 
 
 #
@@ -51,13 +85,19 @@ class SVGTransformRotate():
 #
 if __name__ == "__main__":
     print("Importing an empty transformation list...")
-    empty = SVGTransformList()
-    result = str(empty)
+    l = SVGTransformList()
+    result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
     assert result == ""
 
+    print("Importing a valid transformation list...")
+    l = SVGTransformList(None, "rotate(30);  translate(20,13.5)\t, matrix(1 2 3 4 5 6)")
+    result = str(l)
+    print("Result: 'transform=\"{:s}\"'".format(result))
+    assert result == "rotate(30)"
+
     print("Importing an illegal transformation list...")
-    illegal = SVGTransformList(None, "test")
-    result = str(illegal)
+    l = SVGTransformList(None, "test")
+    result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
     assert result == "test"
