@@ -51,7 +51,7 @@ sMLT = begin + whitespace + "([mMlLtT]{1})" + (whitespace + sNumeric)*2 + end
 # Vertical line:
 #  V y
 #  v dy
-sHV = begin + whitespace + "([hHvH]{1})" + (whitespace + sNumeric) + end
+sHV = begin + whitespace + "([hHvV]{1})" + (whitespace + sNumeric) + end
 
 # Close path:
 #  Z
@@ -83,8 +83,8 @@ class SVGPathSegment:
         if len(match) > 1:
             for m in match[1:]:
                 self.m.append(float(m))
-        if debug:
-            print(self.m)
+        #if self.debug:
+        #    print(self.m)
 
     #
     # Convert segment back to string
@@ -112,8 +112,8 @@ class SVGPathDefinition:
         #print(rSVGPathSegment.match(s).groups())
         results = rSVGPathSegment.findall(d)
         if self.debug:
-            print("Parsing string: \"{:s}\"".format(s))
-            print("Intermediate results: {:s}".format(str(results)))
+            print("Parsing path definition attribute: \"{:s}\"".format(d))
+            #print("Intermediate results: {:s}".format(str(results)))
         for match in results:
             self.segments.append(SVGPathSegment(match, debug=self.debug))
         if self.debug:
@@ -169,4 +169,4 @@ class SVGPathDefinition:
 
 if __name__ == "__main__":
     d = "M 10 10 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
-    SVGPathDefinition(d, debug=True)
+    SVGPathDefinition(path=None, d=d, debug=True)

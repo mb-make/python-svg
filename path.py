@@ -15,10 +15,11 @@ import sys
 #
 class SVGPath(SVGElement):
     def __init__(self, svg=None, parent=None, attributes=[], debug=False):
+        self.debug = debug
         super().__init__(svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
         if not ("d" in self.attributes.keys()):
             self.attributes["d"] = ""
-        self.d = SVGPathDefinition(path=self, d=self.attributes["d"])
+        self.d = SVGPathDefinition(path=self, d=self.attributes["d"], debug=self.debug)
 
     #
     # If this path has a parent element,
