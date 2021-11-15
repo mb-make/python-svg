@@ -78,15 +78,19 @@ class SVGPathSegment:
             match.pop(0)
         while (len(match) > 0) and (match[len(match)-1] == ""):
             match.pop(len(match)-1)
-        self.m = match
+        assert len(match) >= 1
+        self.m = [match[0]]
+        if len(match) > 1:
+            for m in match[1:]:
+                self.m.append(float(m))
         if debug:
-            print(match)
+            print(self.m)
 
     #
     # Convert segment back to string
     #
     def __str__(self):
-        return " ".join(self.m)
+        return " ".join([str(e) for e in self.m])
 
 
 #
@@ -96,18 +100,19 @@ class SVGPathDefinition:
     #
     # initialize path data
     #
-    def __init__(self, s=None, debug=False):
+    def __init__(self, path=None, d=None, debug=False):
+        self.path = path
         self.debug = debug
 
         # initialize empty
         self.segments = []
-        if s is None:
+        if d is None:
             return
 
         #print(rSVGPathSegment.match(s).groups())
-        results = rSVGPathSegment.findall(s)
+        results = rSVGPathSegment.findall(d)
         if self.debug:
-            print("Parsing string: {:s}".format(s))
+            print("Parsing string: \"{:s}\"".format(s))
             print("Intermediate results: {:s}".format(str(results)))
         for match in results:
             self.segments.append(SVGPathSegment(match, debug=self.debug))
