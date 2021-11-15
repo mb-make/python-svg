@@ -6,7 +6,7 @@
 
 import xml.sax
 from element import SVGElement
-#from path import Path
+from path import SVGPath
 
 #
 # The SVG class is a derivative of the XML parser handler class.
@@ -52,7 +52,7 @@ class SVG(xml.sax.ContentHandler):
         parser.setContentHandler(self)
         parser.parse(filename)
 
-        print("Parser found ${:d} paths.".format(len(svg.paths)))
+        print("Parser found ${:d} paths.".format(len(self.paths)))
 
     #
     # XML parser callback: an element starts
@@ -70,7 +70,8 @@ class SVG(xml.sax.ContentHandler):
             e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             self.paths.append(e)
         elif tag == "g":
-            e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
+            #e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
+            e = SVGElement(svg=self, parent=parent, tag="g", attributes=attributes, debug=self.debug)
             self.currentParents.append(e)
             self.descentLevel += 1
             if self.debug:
