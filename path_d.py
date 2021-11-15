@@ -1,113 +1,167 @@
 #!/usr/bin/python
 #
 # Library to handle SVG path descriptions and segments
+# https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
 #
 
-class Segment:
+import re
+from transform import sNumeric
+
+
+#
+# Compile regular expression for parsing
+#
+whitespace = "[ \t\,\:\;\(\)]*"
+# uncaptured group
+begin = "" #"(?:"
+end = "" #")"
+
+# Arc:
+# A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+# a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
+sA = begin + whitespace + "([aA]{1})" + (whitespace + sNumeric)*7 + end
+
+# Bezier curve:
+#  C x1 y1, x2 y2, x y
+#  c dx1 dy1, dx2 dy2, dx dy
+sC = begin + whitespace + "([cC]{1})" + (whitespace + sNumeric)*6 + end
+
+# Quadratic curve:
+#  Q x1 y1, x y
+#  q dx1 dy1, dx dy
+# Append Bezier (smooth):
+#  S x2 y2, x y
+#  s dx2 dy2, dx dy
+sQS = begin + whitespace + "([qQsS]{1})" + (whitespace + sNumeric)*4 + end
+
+# MoveTo:
+#  M x y
+#  m dx dy
+# LineTo:
+#  L x y
+#  l dx dy
+# Append quadratic Bezier:
+#  T x y
+#  t dx dy
+sMLT = begin + whitespace + "([mMlLtT]{1})" + (whitespace + sNumeric)*2 + end
+
+# Horizontal line:
+#  H x
+#  h dx
+# Vertical line:
+#  V y
+#  v dy
+sHV = begin + whitespace + "([hHvH]{1})" + (whitespace + sNumeric) + end
+
+# Close path:
+#  Z
+#  z
+sZ = begin + whitespace + "([zZ]{1})" + end
+
+sSVGPathSegment = "|".join([sA,sC,sQS,sMLT,sHV,sZ])
+#print(sSVGPathSegment)
+rSVGPathSegment = re.compile(sSVGPathSegment)
+#print(rSVGPathSegment)
+
+
+#
+# Any single atomic command within an SVG path definition ("d" attribute)
+#
+class SVGPathSegment:
     #
-    # parse segment from string
+    # Parse path segment from regular expression match
     #
-    def __init__(this, s, a=None, b=None):
-        s = s.strip()
-
-        this.type = s[0]
-
-        if a != None:
-            # explicit intialization
-            this.x = a
-            this.y = b
-
-        elif "mMlL".find(this.type) > -1:
-            # parse from string
-            c = s.split(" ")[1].split(",")
-            this.x = float(c[0])
-            this.y = float(c[1])
+    def __init__(self, match, debug=False):
+        # Strip empty array elements (TODO: enhance regular expression)
+        match = list(match)
+        while (len(match) > 0) and (match[0] == ""):
+            match.pop(0)
+        while (len(match) > 0) and (match[len(match)-1] == ""):
+            match.pop(len(match)-1)
+        self.m = match
+        if debug:
+            print(match)
 
     #
-    # convert segment back to string
+    # Convert segment back to string
     #
-    def __str__(this):
-        if "mMlL".find(this.type) > -1:
-            return this.type + " " + str(this.x) + "," + str(this.y)
-        # else: return only the type
-        return this.type
+    def __str__(self):
+        return " ".join(self.m)
 
-class D:
+
+#
+# The "d" attribute of any path element within an SVG
+#
+class SVGPathDefinition:
     #
     # initialize path data
     #
-    def __init__(this, s=None):
+    def __init__(self, s=None, debug=False):
+        self.debug = debug
+
         # initialize empty
-        this.segments = []
+        self.segments = []
+        if s is None:
+            return
 
-        if s != None:
-            s = s.strip()
-            print "Parsing d: "+s
-            # parser cursor
-            p = 0
-            while p < len(s):
-                # search for beginning of next segment
-                while (p < len(s)) and ("mMlLzZ".find(s[p]) == -1):
-                    p += 1
-
-                # what's there after one space?
-                q = p + 2
-                if (q < len(s)) and ("-0123456789".find(s[q]) != -1):
-                    # has number arguments
-                    e = s.find(" ", q)
-                    if e < q:
-                        # string does apparently not end with a space
-                        e = len(s)
-                    this.segments.append( Segment(s[p:e]) )
-                    p = e + 1
-                else:
-                    # has no number args
-                    this.segments.append( Segment(s[p:p+2]) )
-                    p = q
+        #print(rSVGPathSegment.match(s).groups())
+        results = rSVGPathSegment.findall(s)
+        if self.debug:
+            print("Parsing string: {:s}".format(s))
+            print("Intermediate results: {:s}".format(str(results)))
+        for match in results:
+            self.segments.append(SVGPathSegment(match, debug=self.debug))
+        if self.debug:
+            print("Results: {:s}".format(str([str(seg) for seg in self.segments])))
 
     #
-    # return number of segments in this path description
+    # return number of segments in self path description
     #
-    def __len__(this):
-        return len(this.segments)
+    def __len__(self):
+        return len(self.segments)
 
     #
     # export as string
     #
-    def __str__(this):
-        return " ".join([str(segment) for segment in this.segments])
+    def __str__(self):
+        return " ".join([str(segment) for segment in self.segments])
 
     #
     # min/max functions
     #
-    def min_x(this):
+    def minX(self):
         result = None
-        for segment in this.segments:
+        for segment in self.segments:
             if "ML".find(segment.type) > -1:
                 if (result == None) or (segment.x < result):
                     result = segment.x
         return result
 
-    def max_x(this):
+    def maxX(self):
         result = None
-        for segment in this.segments:
+        for segment in self.segments:
             if "ML".find(segment.type) > -1:
                 if (result == None) or (segment.x > result):
                     result = segment.x
         return result
 
-    def min_y(this):
+    def minY(self):
         result = None
-        for segment in this.segments:
+        for segment in self.segments:
             if "ML".find(segment.type) > -1:
                 if (result == None) or (segment.y < result):
                     result = segment.y
         return result
 
-    def max_y(this):
+    def maxY(self):
         result = None
-        for segment in this.segments:
+        for segment in self.segments:
             if "ML".find(segment.type) > -1:
                 if (result == None) or (segment.y > result):
                     result = segment.y
         return result
+
+
+if __name__ == "__main__":
+    d = "M 10 10 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
+    SVGPathDefinition(d, debug=True)

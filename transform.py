@@ -15,7 +15,8 @@ rFv4 = "[\+\-]*[0-9]+[eE]{1}[\+\-]*[0-9]+"
 rFnoE = "[\+\-]*[0-9]+\.[0-9]+"
 # No comma, no "E"
 rFint = "[\+\-]*[0-9]+"
-rFloat = re.compile("("+rFv1+"|"+rFv2+"|"+rFv4+"|"+rFnoE+"|"+rFint+")")
+sNumeric = "("+rFv1+"|"+rFv2+"|"+rFv4+"|"+rFnoE+"|"+rFint+")"
+rFloat = re.compile(sNumeric)
 rOps = re.compile("([a-zA-Z]+)[^\(\)]*\([^\(\)]*\)")
 rArgs = re.compile("\(([^\(\)]*)\)")
 rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([\+\-0-9eE\.\,\; \t]*)\)")
