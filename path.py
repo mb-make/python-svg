@@ -4,49 +4,33 @@
 # exported from OpenSCAD
 #
 
-from path_d import *
+from element import SVGElement
+from path_d import SVGPathDefinition
+import sys
 
-class Path:
-    #
-    # create new path object
-    #
-    def __init__(this, s=None, d=None, epilogue=None):
-        # initialize empty
-        this.d = D()
-        this.epilogue = ""
 
-        # has a D object been provided ?
-        if d == None:
-            if s != None:
-                # parse from string
-                a = s.find("d=\"") + 3
-                b = s.find("\"", a)
-                this.d = D(s[a:b])
-                this.epilogue = s[b+1:].strip("\n")
-        else:
-            # define attributes directly
-            this.d = d
-            this.epilogue = epilogue
-
-        if (this.epilogue.find(">") == -1):
-            this.epilogue += "/>"
+#
+# Objects of this class are created
+# for every <path/> element encountered in an SVG
+#
+class SVGPath(SVGElement):
+    def __init__(self, svg=None, parent=None, attributes=[], debug=False):
+        super().__init__(svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
+        if not ("d" in self.attributes.keys()):
+            self.attributes["d"] = ""
+        self.d = SVGPathDefinition(path=self, d=self.attributes["d"])
 
     #
-    # export path as string
+    # If this path has a parent element,
+    # then split all closed paths in this path
+    # into separate paths and append them
+    # to the parent element after this path.
     #
-    def __str__(this):
-        return "<path d=\"" + str(this.d) + "\"" + this.epilogue
+    def split(self, modifyParentSVG=True):
+        if modifyParentSVG and (self.parent is None):
+            print("Error: Unable to split: SVG to modify is undefined.")
+            sys.exit(1)
 
-    #
-    # return the number of path segments (M,L,z)
-    #
-    def __len__(this):
-        return len(this.d)
-
-    #
-    # split all closed paths into separate paths
-    #
-    def split(this):
         paths = []
         new_path = Path()
 
@@ -65,4 +49,3 @@ class Path:
                 new_path = Path()
 
         return paths
-
