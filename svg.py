@@ -5,7 +5,8 @@
 #
 
 import xml.sax
-from path import Path
+from element import SVGElement
+#from path import Path
 
 #
 # The SVG class is a derivative of the XML parser handler class.
@@ -29,6 +30,10 @@ class SVG(xml.sax.ContentHandler):
         self.descentLevel = 0
         # The list of parents at the momentary position during parsing
         self.currentParents = []
+        # The tree of parsed elements
+        self.children = []
+        # A flattened list of all parsed elements
+        self.elementList = []
         # A list of all the paths inside the SVG for convenient access
         self.paths = []
 
@@ -50,31 +55,42 @@ class SVG(xml.sax.ContentHandler):
         print("Parser found ${:d} paths.".format(len(svg.paths)))
 
     #
-    # During parsing: returns the last encountered tag requiring a closing tag
-    #
-    def getCurrentParent(self):
-        l = len(self.currentParents)
-        if l == 0:
-            return None
-        else:
-            return self.currentParents[l-1]
-
-    #
     # XML parser callback: an element starts
     #
     def startElement(self, tag, attributes):
-        #e = SVGElement(tag, attributes)
+        # Determine parent element
+        parent = self
+        l = len(self.currentParents)
+        if l > 0:
+            parent = self.currentParents[l-1]
+
+        # Evaluate tag
+        tag = tag.lower()
         if tag == "path":
-            self.addPath(attributes)
+            e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
+            self.paths.append(e)
         elif tag == "g":
-            self.parserDescend(attributes)
+            e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
+            self.currentParents.append(e)
+            self.descentLevel += 1
+            if self.debug:
+                print("Begin group; descending to level: ", self.descentLevel)
+        else:
+            e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
+
+        self.elementList.append(e)
+        parent.children.append(e)
 
     #
     # XML parser callback: an elements ends
     #
     def endElement(self, tag):
         if tag == "g":
-            self.parserAscend()
+            if len(self.currentParents) > 0:
+                self.currentParents.pop(len(self.currentParents)-1)
+            self.descentLevel -= 1
+            if self.debug:
+                print("End group; ascending to level: ", self.descentLevel)
 
     #
     # XML parser callback: tag content is read
@@ -83,26 +99,7 @@ class SVG(xml.sax.ContentHandler):
         #print(content)
         return
 
-    def parserDescend(self, attributes):
-        self.descentLevel += 1
-        if self.debug:
-            id = attributes["id"] if "id" in attributes else ""
-            print("Begin group ", id, "; descending to level ", self.descentLevel)
-        g = Group(attributes, debug=self.debug)
-        self.currentParents.append(g)
 
-    def parserAscend(self):
-        if len(self.currentParents) > 0:
-            self.currentParents.pop(len(self.currentParents)-1)
-        self.descentLevel -= 1
-        if self.debug:
-            print("End group; ascending to level: ", self.descentLevel)
-
-    def addPath(self, attributes):
-        if self.debug:
-            id = attributes["id"]
-            print("Path id=", id)
-        p = Path(attributes, self.currentParents, debug=self.debug)
-        self.paths.append(p)
-        if self.debug:
-            print("Parents: ", len(p.parents), "; command count: ", p.cmdCount)
+# Self-test
+if __name__ == "__main__":
+    f = SVG(filename="tests/import-export/test1.svg", debug=True)
