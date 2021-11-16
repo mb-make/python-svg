@@ -118,6 +118,12 @@ class SVGPathDefinition:
             self.segments.append(SVGPathSegment(match, debug=self.debug))
         if self.debug:
             print("Results: {:s}".format(str([str(seg) for seg in self.segments])))
+        #
+        # TODO: Verification
+        #  1. The number of characters must be equal in source and parsed content.
+        #  2. The number of numeric values must be equal in source and parsed content.
+        #  3. Characters other than the above segment commands are forbidden.
+        #
 
     #
     # return number of segments in self path description
