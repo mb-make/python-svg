@@ -1,9 +1,8 @@
 
-import os
-import sys
+import os, sys
 
-script_dir = os.path.dirname( __file__ )
-mymodule_dir = os.path.join(script_dir)
-sys.path.append( mymodule_dir )
+pathFile = os.path.dirname(__file__)
+pathLib = os.path.join(pathFile)
+sys.path.append(pathLib)
 
 import svg
