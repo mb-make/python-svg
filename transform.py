@@ -93,6 +93,9 @@ class SVGMatrix:
     def __init__(self, a, b, c, d, e, f):
         self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
 
+    def __str__(self):
+        return str(self.matrix)
+
     def multiply(self, secondMatrix):
         return np.matmul(self.matrix, secondMatrix)
 
@@ -127,12 +130,13 @@ class SVGTransformRotate():
         self.y = float(f[2]) if self.altOrigin else 0.0
 
         self.matrix = SVGMatrix(
-            cos(self.angle), -sin(self.angle), self.x,
-            sin(self.angle), cos(self.angle), self.y
+            a=cos(self.angle), c=-sin(self.angle), e=self.x,
+            b=sin(self.angle), d= cos(self.angle), f=self.y
             )
 
         if debug:
-            print("Parsed rotation around ({:.2f};{:.2f}) by {:.2f} degrees.".format(self.x, self.y, self.angle))
+            print("Parsed rotation around ({:.2f}, {:.2f}) by {:.2f} degrees.".format(self.x, self.y, self.angle))
+            print("Yielded transformation matrix:\n{:s}".format(str(self.matrix)))
 
     def __str__(self):
         return "rotate({:.3f} {:.3f} {:.3f})".format(self.angle, self.x, self.y) if self.altOrigin else "rotate({:.3f})".format(self.angle)
@@ -158,12 +162,13 @@ class SVGTransformTranslate():
             self.ty = float(f[1])
 
         self.matrix = SVGMatrix(
-            1, 0, self.tx,
-            0, 1, self.ty
+            a=1, c=0, e=self.tx,
+            b=0, d=1, f=self.ty
             )
 
         if debug:
             print("Parsed translation vector is ({:.2f}, {:.2f}).".format(self.tx, self.ty))
+            print("Yielded transformation matrix:\n{:s}".format(str(self.matrix)))
 
     def __str__(self):
         return "translate({:.3f}, {:.3f})".format(self.tx, self.ty)
@@ -186,13 +191,14 @@ class SVGTransformMatrix():
             self.f += [float(f[i])]
 
         self.matrix = SVGMatrix(
-            self.f[0], self.f[1], self.f[2],
-            self.f[3], self.f[4], self.f[5]
+            a=self.f[0], c=self.f[1], e=self.f[2],
+            b=self.f[3], d=self.f[4], f=self.f[5]
             )
 
         if debug:
             print("Parsed matrix is [[{:.2f}, {:.2f}, {:.2f}], [{:.2f}, {:.2f}, {:.2f}], [0, 0, 1]]."
                 .format(self.f[0], self.f[1], self.f[2], self.f[3], self.f[4], self.f[5]))
+            print("Yielded transformation matrix:\n{:s}".format(str(self.matrix)))
 
     def __str__(self):
         return "matrix({:s})".format(", ".join(["{:.3f}".format(x) for x in self.f]))
@@ -210,7 +216,7 @@ if __name__ == "__main__":
 
     transform = "rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
     print("Importing a valid transformation list: \"{:s}\"".format(transform))
-    l = SVGTransformList(None, transform)
+    l = SVGTransformList(None, transform, debug=True)
     result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
     #assert result == "rotate(30)"
