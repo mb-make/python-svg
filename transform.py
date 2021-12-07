@@ -40,6 +40,7 @@ class SVGTransformList():
 
     def clear(self):
         self.transformations = []
+        self.matrix = None
 
     def parseFromString(self, s):
         self.clear()
@@ -75,6 +76,39 @@ class SVGTransformList():
                 t = SVGTransformMatrix(mTransform[i], debug=self.debug)
             self.transformations += [t]
 
+    #
+    # Return the effective cumulative transformation
+    # of all transformations in this list
+    #
+    def getTransformationMatrix(self):
+        if self.matrix is None:
+            self.calculateTransformationMatrix()
+        return self.matrix
+
+    #
+    # Calculate the effective cumulative transformation
+    # of all transformations in this list
+    #
+    def calculateTransformationMatrix(self):
+        if len(self.transformations) == 0:
+            # Identity matrix
+            self.matrix = SVGMatrix()
+            return
+        self.matrix = self.transformations[0].getMatrix()
+        if self.debug:
+            print("Calculating effective transformation matrix:")
+            print(str(self.transformations[0]))
+            print(str(self.matrix))
+        if len(self.transformations) > 1:
+            for t in self.transformations[1:]:
+                print(str(t))
+                print("i.e. multiply matrix with")
+                m2 = t.getMatrix()
+                print(str(m2))
+                self.matrix = np.matmul(self.matrix, m2)
+                print("Result:")
+                print(str(self.matrix))
+
     # Export to string
     def __str__(self):
         ts = []
@@ -90,14 +124,20 @@ class SVGTransformList():
 #  https://www.scriptverse.academy/tutorials/python-matrix-multiplication.html
 #
 class SVGMatrix:
-    def __init__(self, a, b, c, d, e, f):
+    def __init__(self, a=1, b=0, c=0, d=1, e=0, f=0):
         self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
+
+    def getMatrix(self):
+        return self.matrix
 
     def __str__(self):
         return str(self.matrix)
 
     def multiply(self, secondMatrix):
-        return np.matmul(self.matrix, secondMatrix)
+        return np.matmul(self.matrix, secondMatrix.getMatrix())
+
+    def __mul__(self, secondMatrix):
+        return self.multiply(secondMatrix)
 
 
 #
@@ -105,7 +145,12 @@ class SVGMatrix:
 #
 # Read more: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
 #
-class SVGTransformRotate():
+class SVGTransformCommand:
+    def getMatrix(self):
+        return self.matrix.getMatrix()
+
+
+class SVGTransformRotate(SVGTransformCommand):
     #
     # m is a regular expression match:
     #  first element = operation, in this case: "rotate"
@@ -142,7 +187,7 @@ class SVGTransformRotate():
         return "rotate({:.3f} {:.3f} {:.3f})".format(self.angle, self.x, self.y) if self.altOrigin else "rotate({:.3f})".format(self.angle)
 
 
-class SVGTransformTranslate():
+class SVGTransformTranslate(SVGTransformCommand):
     #
     # m is a regular expression match:
     #  first element = operation, in this case: "translate"
@@ -174,7 +219,7 @@ class SVGTransformTranslate():
         return "translate({:.3f}, {:.3f})".format(self.tx, self.ty)
 
 
-class SVGTransformMatrix():
+class SVGTransformMatrix(SVGTransformCommand):
     #
     # m is a regular expression match:
     #  first element = operation, in this case: "matrix"
@@ -209,10 +254,13 @@ class SVGTransformMatrix():
 #
 if __name__ == "__main__":
     print("Importing an empty transformation list...")
-    l = SVGTransformList()
+    l = SVGTransformList(debug=True)
     result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
     assert result == ""
+
+    #print("Transformation matrix:")
+    l.getTransformationMatrix()
 
     transform = "rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
     print("Importing a valid transformation list: \"{:s}\"".format(transform))
@@ -220,6 +268,9 @@ if __name__ == "__main__":
     result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
     #assert result == "rotate(30)"
+
+    #print("Transformation matrix:")
+    l.getTransformationMatrix()
 
     #print("Importing an illegal transformation list...")
     #transform = "test ()"
