@@ -52,7 +52,7 @@ class SVG(xml.sax.ContentHandler):
         parser.setContentHandler(self)
         parser.parse(filename)
 
-        print("Parser found ${:d} paths.".format(len(self.paths)))
+        print("Parser found {:d} paths.".format(len(self.paths)))
 
     #
     # XML parser callback: an element starts
