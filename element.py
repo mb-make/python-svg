@@ -6,7 +6,7 @@ from transform import SVGTransformList
 # Generic XML element class
 #
 class SVGElement():
-    def __init__(self, svg=None, parent=None, tag=None, attributes=[], debug=False):
+    def __init__(self, svg=None, parent=None, tag=None, attributes=None, debug=False):
         self.parentSVG = svg
         self.parentElement = parent
         self.tag = tag
