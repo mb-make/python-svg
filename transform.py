@@ -3,6 +3,11 @@
 # Use regular expressions for parsing
 import re
 
+# Use NumPy for matrix operations (element transformations)
+import numpy as np
+from numpy import sin, cos, tan
+
+
 # Comma before and after "E"
 rFv1 = "[\+\-]*[0-9]+\.[0-9]+[eE]{1}[\+\-]*[0-9]+\.[0-9]+"
 # Comma before "E"
@@ -79,11 +84,24 @@ class SVGTransformList():
 
 
 #
+# The math implementing
+#  https://www.w3.org/TR/SVG11/coords.html#InterfaceSVGMatrix
+# See also:
+#  https://www.scriptverse.academy/tutorials/python-matrix-multiplication.html
+#
+class SVGMatrix:
+    def __init__(self, a, b, c, d, e, f):
+        self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
+
+    def multiply(self, secondMatrix):
+        return np.matmul(self.matrix, secondMatrix)
+
+
+#
 # Implement matrix, translate and rotate first
 #
 # Read more: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
 #
-
 class SVGTransformRotate():
     #
     # m is a regular expression match:
@@ -107,6 +125,11 @@ class SVGTransformRotate():
         self.altOrigin = (len(f) == 3)
         self.x = float(f[1]) if self.altOrigin else 0.0
         self.y = float(f[2]) if self.altOrigin else 0.0
+
+        self.matrix = SVGMatrix(
+            cos(self.angle), -sin(self.angle), self.x,
+            sin(self.angle), cos(self.angle), self.y
+            )
 
         if debug:
             print("Parsed rotation around ({:.2f};{:.2f}) by {:.2f} degrees.".format(self.x, self.y, self.angle))
@@ -133,6 +156,12 @@ class SVGTransformTranslate():
         self.ty = 0.0
         if len(f) == 2:
             self.ty = float(f[1])
+
+        self.matrix = SVGMatrix(
+            1, 0, self.tx,
+            0, 1, self.ty
+            )
+
         if debug:
             print("Parsed translation vector is ({:.2f}, {:.2f}).".format(self.tx, self.ty))
 
@@ -155,6 +184,12 @@ class SVGTransformMatrix():
         self.f = []
         for i in range(6):
             self.f += [float(f[i])]
+
+        self.matrix = SVGMatrix(
+            self.f[0], self.f[1], self.f[2],
+            self.f[3], self.f[4], self.f[5]
+            )
+
         if debug:
             print("Parsed matrix is [[{:.2f}, {:.2f}, {:.2f}], [{:.2f}, {:.2f}, {:.2f}], [0, 0, 1]]."
                 .format(self.f[0], self.f[1], self.f[2], self.f[3], self.f[4], self.f[5]))
