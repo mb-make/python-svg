@@ -95,15 +95,24 @@ class SVGTransformRotate():
         arg = m[1]
         assert arg != ""
         if debug:
-            print("Parsing rotation angle: \"{:s}\"".format(arg))
+            print("Parsing rotation: \"{:s}\"".format(arg))
         f = rFloat.findall(arg)
-        assert len(f) == 1
+        # rotate(angle [x y])
+        assert len(f) in [1, 3]
+
+        # Rotate by angle in degrees
         self.angle = float(f[0])
+
+        # Rotate around (alternate) origin
+        self.altOrigin = (len(f) == 3)
+        self.x = float(f[1]) if self.altOrigin else 0.0
+        self.y = float(f[2]) if self.altOrigin else 0.0
+
         if debug:
-            print("Parsed rotation angle is {:.2f} degrees.".format(self.angle))
+            print("Parsed rotation around ({:.2f};{:.2f}) by {:.2f} degrees.".format(self.x, self.y, self.angle))
 
     def __str__(self):
-        return "rotate({:.3f})".format(self.angle)
+        return "rotate({:.3f} {:.3f} {:.3f})".format(self.angle, self.x, self.y) if self.altOrigin else "rotate({:.3f})".format(self.angle)
 
 
 class SVGTransformTranslate():
