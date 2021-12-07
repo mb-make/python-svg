@@ -12,14 +12,17 @@ class SVGElement():
         self.tag = tag
         self.attributes = attributes
         self.children = []
-        self.parse()
+        self.parseTransform()
 
-    def parse(self):
-        # Special property to handle element transformations
-        self.transform = SVGTransformList()
-        if not (self.attributes is None):
-            if "transform" in self.attributes.keys():
-                self.transform = SVGTransformList(parseFromString=self.attributes["transform"])
+    #
+    # Parse the coordinates transformation attribute
+    #
+    def parseTransform(self):
+        if (self.attributes is None) or (not ("transform" in self.attributes.keys())):
+            # Error; use empty transformation list
+            self.transform = SVGTransformList()
+        else:
+            self.transform = SVGTransformList(parseFromString=self.attributes["transform"])
 
 
 if __name__ == "__main__":
