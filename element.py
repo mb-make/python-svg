@@ -7,22 +7,53 @@ from transform import SVGTransformList
 #
 class SVGElement():
     def __init__(self, svg=None, parent=None, tag=None, attributes=None, debug=False):
+        self.debug = debug
         self.parentSVG = svg
         self.parentElement = parent
         self.tag = tag
         self.attributes = attributes
         self.children = []
-        self.parseTransform()
+        # Increase speed: only parse if necessary
+        #self.parseTransform()
+        self.transform = None
+        # Current transformation matrix for this element and it's children
+        # (this matrix already includes the transformations of parent elements)
+        self.ctm = None
 
     #
     # Parse the coordinates transformation attribute
     #
     def parseTransform(self):
-        if (self.attributes is None) or (not ("transform" in self.attributes.keys())):
-            # Error; use empty transformation list
-            self.transform = SVGTransformList()
-        else:
-            self.transform = SVGTransformList(parseFromString=self.attributes["transform"])
+        if ((not (self.attributes is None)) and ("transform" in self.attributes.keys())):
+            self.transform = SVGTransformList(parseFromString=self.attributes["transform"], debug=self.debug)
+            return
+        # Error; use empty transformation list
+        self.transform = SVGTransformList()
+
+    #
+    # Return the transformation list of the current element
+    #
+    def getTransform(self):
+        if self.transform is None:
+            self.parseTransform()
+        return self.transform
+
+    #
+    # Return the current transformation matrix
+    # of the current element including transformations of parent elements
+    #
+    def calculateCTM(self):
+        # TODO
+        return None
+
+    #
+    # Return the current transformation matrix
+    # of the current element including transformations of parent elements
+    #
+    def getCTM(self):
+        if self.ctm is None:
+            self.calculateCTM()
+        return self.ctm
 
 
 if __name__ == "__main__":
