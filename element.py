@@ -3,9 +3,24 @@
 from transform import SVGTransformList
 
 #
-# Generic XML element class
+# Generic XML element and element parent class
+#
+# Transformations and current transfomration matrix (CTM)
+# are imlemented here, since they are the same for all elements.
+#
+# Every SVG element must implement the following
+# methods, defining the element's bounding box
+# in absolute coordinates:
+#  - getMinX()
+#  - getMaxX()
+#  - getMinY()
+#  - getMaxY()
 #
 class SVGElement():
+    #
+    # An element is initialized by setting the XML tag name and attributes.
+    # Additionally the containing SVG is referenced.
+    #
     def __init__(self, svg=None, parent=None, tag=None, attributes=None, debug=False):
         self.debug = debug
         self.parentSVG = svg
