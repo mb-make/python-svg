@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Library to handle SVG path descriptions and segments
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
@@ -86,6 +86,27 @@ class SVGPathSegment:
         #if self.debug:
         #    print(self.m)
 
+    def isMoveTo(self):
+        return self.m[0].upper() == "M"
+
+    def isLineTo(self):
+        return self.m[0].upper() == "L"
+
+    def isClosePath(self):
+        return self.m[0].upper() == "Z"
+
+    def isRelative(self):
+        return not self.isAbsolute()
+
+    def isAbsolute(self):
+        return self.m[0] == self.m[0].upper()
+
+    def getX(self):
+        return self.m[1]
+
+    def getY(self):
+        return self.m[2]
+
     #
     # Convert segment back to string
     #
@@ -94,7 +115,8 @@ class SVGPathSegment:
 
 
 #
-# The "d" attribute of any path element within an SVG
+# Loads, parsees and enables handling of paths
+# as defined in a path's "d" attribute
 #
 class SVGPathDefinition:
     #
@@ -126,13 +148,42 @@ class SVGPathDefinition:
         #
 
     #
-    # return number of segments in self path description
+    # Return the number of segments in self path description
     #
     def __len__(self):
         return len(self.segments)
 
     #
-    # export as string
+    # Return the relative cursor coordinates,
+    # optionally at the indexed segment
+    #
+    def getSegmentCoordinates(self, index=None):
+        coordinates = []
+        cursorX, cursorY = 0.00, 0.00
+        for i in range(len(self.segments)):
+            if self.debug:
+                print("Cursor at relative ({:.2f},{:.2f})".format(cursorX, cursorY))
+            coordinates.append([cursorX, cursorY])
+            segment = self.segments[i]
+            if self.debug:
+                print(str(segment))
+            if segment.isClosePath():
+                cursorX, cursorY = 0.00, 0.00
+            elif segment.isAbsolute():
+                if segment.isMoveTo() or segment.isLineTo():
+                    cursorX, cursorY = segment.getX(), segment.getY()
+            elif segment.isRelative():
+                if segment.isMoveTo() or segment.isLineTo():
+                    cursorX += segment.getX()
+                    cursorY += segment.getY()
+            if self.debug:
+                print("Cursor at relative ({:.2f},{:.2f})".format(cursorX, cursorY))
+        if index is None:
+            return coordinates
+        return coordinates[index]
+
+    #
+    # Export as string
     #
     def __str__(self):
         return " ".join([str(segment) for segment in self.segments])
@@ -175,4 +226,6 @@ class SVGPathDefinition:
 
 if __name__ == "__main__":
     d = "M 10 10 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
-    SVGPathDefinition(path=None, d=d, debug=True)
+    D = SVGPathDefinition(path=None, d=d, debug=True)
+    P = D.getSegmentCoordinates()
+    print("Parsed path points: {:s}".format(str(P)))
