@@ -28,6 +28,42 @@ rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([\
 
 
 #
+# The math implementing
+#  https://www.w3.org/TR/SVG11/coords.html#InterfaceSVGMatrix
+# See also:
+#  https://www.scriptverse.academy/tutorials/python-matrix-multiplication.html
+#
+class SVGMatrix:
+    def __init__(self, a=1, b=0, c=0, d=1, e=0, f=0, debug=False):
+        self.debug = debug
+        self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
+
+    def getMatrix(self):
+        return self.matrix
+
+    def __str__(self):
+        return str(self.matrix)
+
+    def applyToPoint(self, point, debug=False):
+        if debug or self.debug:
+            print("Applying matrix \n{:s}\nto point{:s}\n".format(str(self.matrix), str(point)))
+        pAbs = np.matmul(point, self.matrix)
+        if debug or self.debug:
+            print("Result: \n{:s}\n".format(str(pAbs)))
+        return pAbs
+
+    def applyToMatrix(self, matrix, debug=False):
+        if debug or self.debug:
+            print("Applying matrix \n{:s}\nto matrix\n{:s}\n".format(str(self.matrix), str(matrix)))
+        if type(matrix) is SVGMatrix:
+            matrix = matrix.getMatrix()
+        mAbs = np.matmul(matrix, self.matrix)
+        if debug or self.debug:
+            print("Result: \n{:s}\n".format(str(mAbs)))
+        return mAbs
+
+
+#
 # Class to store/handle SVG element transformations
 #
 class SVGTransformList():
@@ -96,18 +132,20 @@ class SVGTransformList():
             return
         self.matrix = self.transformations[0].getMatrix()
         if self.debug:
-            print("Calculating effective transformation matrix:")
-            print(str(self.transformations[0]))
+            print("Calculating transformation matrix beginning with:")
+            print(str(self.transformations[0])+"=")
             print(str(self.matrix))
         if len(self.transformations) > 1:
             for t in self.transformations[1:]:
-                print(str(t))
-                print("i.e. multiply matrix with")
-                m2 = t.getMatrix()
-                print(str(m2))
-                self.matrix = np.matmul(self.matrix, m2)
-                print("Result:")
-                print(str(self.matrix))
+                individualTransformMatrix = t.getMatrix()
+                if self.debug:
+                    print("Apply:")
+                    print(str(t)+"=")
+                    print(str(individualTransformMatrix))
+                self.matrix = individualTransformMatrix.applyToMatrix(self.matrix)
+                if self.debug:
+                    print("Result:")
+                    print(str(self.matrix))
 
     # Export to string
     def __str__(self):
@@ -118,36 +156,13 @@ class SVGTransformList():
 
 
 #
-# The math implementing
-#  https://www.w3.org/TR/SVG11/coords.html#InterfaceSVGMatrix
-# See also:
-#  https://www.scriptverse.academy/tutorials/python-matrix-multiplication.html
-#
-class SVGMatrix:
-    def __init__(self, a=1, b=0, c=0, d=1, e=0, f=0):
-        self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
-
-    def getMatrix(self):
-        return self.matrix
-
-    def __str__(self):
-        return str(self.matrix)
-
-    def multiply(self, secondMatrix):
-        return np.matmul(self.matrix, secondMatrix.getMatrix())
-
-    def __mul__(self, secondMatrix):
-        return self.multiply(secondMatrix)
-
-
-#
 # Implement matrix, translate and rotate first
 #
 # Read more: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
 #
 class SVGTransformCommand:
     def getMatrix(self):
-        return self.matrix.getMatrix()
+        return self.matrix
 
 
 class SVGTransformRotate(SVGTransformCommand):
