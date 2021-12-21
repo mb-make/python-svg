@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from transform import SVGTransformList
+from transform import SVGTransformList, SVGMatrix
 
 #
 # Generic XML element and element parent class
@@ -15,6 +15,9 @@ from transform import SVGTransformList
 #  - getMaxX()
 #  - getMinY()
 #  - getMaxY()
+#
+# The class SVGBoundingBox can be used as parent class
+# to fulfill that.
 #
 class SVGElement():
     #
@@ -54,12 +57,16 @@ class SVGElement():
         return self.transform
 
     #
-    # Return the current transformation matrix
+    # Return the current transformation matrix (CTM)
     # of the current element including transformations of parent elements
+    # as SVGMatrix
     #
     def calculateCTM(self):
-        # TODO
-        return None
+        myMatrix = self.transform.getTransformationMatrix()
+        if self.parentElement is None:
+            self.ctm = myMatrix
+        parentCTM = self.parent.getCTM()
+        self.ctm = myMatrix.applyToMatrix(parentCTM)
 
     #
     # Return the current transformation matrix
@@ -74,6 +81,15 @@ class SVGElement():
 if __name__ == "__main__":
     transform = 'matrix(1,2,3,4,5,6);rotate(45), translate(2.0 1e3)'
     print("Parsing element with attributes: transform=\"{:s}\"".format(transform))
-    e = SVGElement(svg=None, parent=None, tag=None, attributes={"transform": transform})
-    print(e)
-    print(e.transform)
+    e = SVGElement(
+            svg=None,
+            parent=None,
+            tag=None,
+            attributes={"transform": transform},
+            debug=True
+            )
+    #print(e)
+    t = e.getTransform()
+    #print(str(t))
+    m = t.getTransformationMatrix()
+    #print(str(m))
