@@ -8,7 +8,7 @@ from bbox import SVGBoundingBox
 # Load a template SVG, extract a list of bounding boxes
 # and apply the latter for content extraction from a target SVG
 #
-class SVGTemplate(SVG):
+class SVGTemplate(SVGParser):
     def __init__(self, filename=None, bboxSelector="bbox[a-zA-Z0-9]", debug=False):
         self.clear()
         super().__init__(filename, debug)
@@ -48,12 +48,12 @@ class SVGTemplate(SVG):
 if __name__ == "__main__":
     # Load template
     print("Loading template...")
-    template = SVGTemplate(filename="tests/template-application/template.svg", debug=False)
+    template = SVGTemplate(filename="tests/template-application/template.svg", debug=True)
     print(template)
 
     # Load target
     print("Loading target SVG...")
-    target = SVG(filename="tests/template-application/target.svg", debug=False)
+    target = SVGParser(filename="tests/template-application/target.svg", debug=True)
     print(target)
 
     # Apply template

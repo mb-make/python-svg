@@ -5,4 +5,4 @@ pathFile = os.path.dirname(__file__)
 pathLib = os.path.join(pathFile)
 sys.path.append(pathLib)
 
-import svg
+import parser as svg

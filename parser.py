@@ -13,7 +13,7 @@ from path import SVGPath
 # It is capable of handling parser events and
 # also stores relevant information.
 #
-class SVG(xml.sax.ContentHandler):
+class SVGParser(xml.sax.ContentHandler):
     def __init__(self, filename=None, debug=False):
         self.debug = debug
         if filename is None:
@@ -31,7 +31,7 @@ class SVG(xml.sax.ContentHandler):
         # The list of parents at the momentary position during parsing
         self.currentParents = []
         # The tree of parsed elements
-        self.children = []
+        self.elementTree = SVGElement()
         # A flattened list of all parsed elements
         self.elementList = []
         # A list of all the paths inside the SVG for convenient access
@@ -59,8 +59,8 @@ class SVG(xml.sax.ContentHandler):
     # XML parser callback: an element starts
     #
     def startElement(self, tag, attributes):
-        # Determine parent element
-        parent = self
+        # Determine current parent element
+        parent = self.elementTree
         l = len(self.currentParents)
         if l > 0:
             parent = self.currentParents[l-1]
@@ -104,4 +104,4 @@ class SVG(xml.sax.ContentHandler):
 
 # Self-test
 if __name__ == "__main__":
-    f = SVG(filename="tests/import-export/test1.svg", debug=True)
+    f = SVGParser(filename="tests/import-export/test.svg", debug=True)
