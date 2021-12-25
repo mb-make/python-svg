@@ -45,6 +45,8 @@ sQS = begin + whitespace + "([qQsS]{1})" + (whitespace + sNumeric)*4 + end
 #  t dx dy
 sMLT = begin + whitespace + "([mMlLtT]{1})" + (whitespace + sNumeric)*2 + end
 
+sImplicitRepetition = begin + whitespace + (whitespace + sNumeric)*2 + end
+
 # Horizontal line:
 #  H x
 #  h dx
@@ -58,7 +60,7 @@ sHV = begin + whitespace + "([hHvV]{1})" + (whitespace + sNumeric) + end
 #  z
 sZ = begin + whitespace + "([zZ]{1})" + end
 
-sSVGPathCommand = "|".join([sA,sC,sQS,sMLT,sHV,sZ])
+sSVGPathCommand = "|".join([sA,sC,sQS,sMLT,sHV,sZ,sImplicitRepetition])
 #print(sSVGPathCommand)
 rSVGPathCommand = re.compile(sSVGPathCommand)
 #print(rSVGPathCommand)
@@ -71,7 +73,7 @@ class SVGPathCommand:
     #
     # Parse path segment from regular expression match
     #
-    def __init__(self, command, startpoint=(0,0), debug=False):
+    def __init__(self, command, startpoint=(0,0), previousCommand=None, debug=False):
         self.debug = debug
 
         command = list(command)
@@ -82,15 +84,23 @@ class SVGPathCommand:
         while (len(command) > 0) and (command[len(command)-1] == ""):
             command.pop(len(command)-1)
         assert len(command) >= 1
+        if self.debug:
+            print("Parsing path command: {:s}".format(str(command)))
 
-        # First list element: Command
-        self.m = [command[0]]
+        i = 0
+        anyCommand = "mMlLvVhHcCqQsStTA"
+        if not command[0] in anyCommand:
+            # Command character omission implies repetition
+            self.m = [previousCommand.m[0]]
+        else:
+            # First list element is command character
+            self.m = [command[0]]
+            i = 1
+
         # Following list elements: float values
         if len(command) > 1:
-            for m in command[1:]:
+            for m in command[i:]:
                 self.m.append(float(m))
-        if self.debug:
-            print("Parsing path command: {:s}".format(str(self.m)))
 
         self.startpoint = startpoint
         self.endpoint = None
@@ -141,7 +151,7 @@ class SVGPathCommand:
         x = self.startpoint[0]
         y = self.startpoint[1]
         if self.debug:
-            print("Cursor is at ({:.2f},{:.2f}).".format(x, y))
+            print("Moving from ({:.2f},{:.2f})".format(x, y))
 
         if self.isMoveTo() or self.isLineTo() or self.isMultipleQuadraticBeziers():
             x = self.m[1]
@@ -178,7 +188,7 @@ class SVGPathCommand:
         self.endpoint = (x, y)
 
         if self.debug:
-            print("Cursor is at ({:.2f},{:.2f}).".format(x, y))
+            print("to ({:.2f},{:.2f})".format(x, y))
 
         return self.endpoint
 
@@ -215,11 +225,16 @@ class SVGPathDefinition:
         # Walk along the path and store the points
         cursor = (0.0, 0.0)
         self.points = [cursor]
+        cmd = None
         for match in results:
-            cmd = SVGPathCommand(command=match, startpoint=cursor, debug=self.debug)
+            cmd = SVGPathCommand(command=match, startpoint=cursor, previousCommand=cmd, debug=self.debug)
             self.segments.append(cmd)
             cursor = cmd.getEndpoint()
             self.points.append(cursor)
+
+        # If the first segment is not drawn, then the startpoint is not treated as a curve point.
+        if self.segments[0].isMoveTo():
+            self.points.pop(0)
 
         #
         # TODO: Verification
@@ -288,7 +303,7 @@ class SVGPathDefinition:
 
 
 if __name__ == "__main__":
-    s = "M 10 10 m 1.0 2.0 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
+    s = "M 10 10 m 1.0 2.0 L 2 1 l 1 3 H 1.0 h -1 V20 v -3 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 z"
     path = SVGPathDefinition(path=None, d=s, debug=True)
-    points = D.getPoints()
+    points = path.getPoints()
     #print("Parsed path points: {:s}".format(str(points)))
