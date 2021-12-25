@@ -58,33 +58,42 @@ sHV = begin + whitespace + "([hHvV]{1})" + (whitespace + sNumeric) + end
 #  z
 sZ = begin + whitespace + "([zZ]{1})" + end
 
-sSVGPathSegment = "|".join([sA,sC,sQS,sMLT,sHV,sZ])
-#print(sSVGPathSegment)
-rSVGPathSegment = re.compile(sSVGPathSegment)
-#print(rSVGPathSegment)
+sSVGPathCommand = "|".join([sA,sC,sQS,sMLT,sHV,sZ])
+#print(sSVGPathCommand)
+rSVGPathCommand = re.compile(sSVGPathCommand)
+#print(rSVGPathCommand)
 
 
 #
 # Any single atomic command within an SVG path definition ("d" attribute)
 #
-class SVGPathSegment:
+class SVGPathCommand:
     #
     # Parse path segment from regular expression match
     #
-    def __init__(self, match, debug=False):
-        # Strip empty array elements (TODO: enhance regular expression)
-        match = list(match)
-        while (len(match) > 0) and (match[0] == ""):
-            match.pop(0)
-        while (len(match) > 0) and (match[len(match)-1] == ""):
-            match.pop(len(match)-1)
-        assert len(match) >= 1
-        self.m = [match[0]]
-        if len(match) > 1:
-            for m in match[1:]:
+    def __init__(self, command, startpoint=(0,0), debug=False):
+        self.debug = debug
+
+        command = list(command)
+
+        # Strip empty array elements at beginning and end of the list
+        while (len(command) > 0) and (command[0] == ""):
+            command.pop(0)
+        while (len(command) > 0) and (command[len(command)-1] == ""):
+            command.pop(len(command)-1)
+        assert len(command) >= 1
+
+        # First list element: Command
+        self.m = [command[0]]
+        # Following list elements: float values
+        if len(command) > 1:
+            for m in command[1:]:
                 self.m.append(float(m))
-        #if self.debug:
-        #    print(self.m)
+        if self.debug:
+            print("Parsing path command: {:s}".format(str(self.m)))
+
+        self.startpoint = startpoint
+        self.endpoint = None
 
     def isMoveTo(self):
         return self.m[0].upper() == "M"
@@ -92,8 +101,29 @@ class SVGPathSegment:
     def isLineTo(self):
         return self.m[0].upper() == "L"
 
+    def isHorizontalLine(self):
+        return self.m[0].upper() == "H"
+
+    def isVerticalLine(self):
+        return self.m[0].upper() == "V"
+
     def isClosePath(self):
         return self.m[0].upper() == "Z"
+
+    def isCubicBezier(self):
+        return self.m[0].upper() == "C"
+
+    def isMultipleCubicBeziers(self):
+        return self.m[0].upper() == "S"
+
+    def isQuadraticBezier(self):
+        return self.m[0].upper() == "Q"
+
+    def isMultipleQuadraticBeziers(self):
+        return self.m[0].upper() == "T"
+
+    def isArc(self):
+        return self.m[0].upper() == "A"
 
     def isRelative(self):
         return not self.isAbsolute()
@@ -101,11 +131,56 @@ class SVGPathSegment:
     def isAbsolute(self):
         return self.m[0] == self.m[0].upper()
 
-    def getX(self):
-        return self.m[1]
+    def getStartpoint(self):
+        return self.startpoint
 
-    def getY(self):
-        return self.m[2]
+    def getEndpoint(self):
+        if not (self.endpoint is None):
+            return self.endpoint
+
+        x = self.startpoint[0]
+        y = self.startpoint[1]
+        if self.debug:
+            print("Cursor is at ({:.2f},{:.2f}).".format(x, y))
+
+        if self.isMoveTo() or self.isLineTo() or self.isMultipleQuadraticBeziers():
+            x = self.m[1]
+            y = self.m[2]
+        elif self.isHorizontalLine():
+            x = self.m[1]
+            y = self.startpoint[1]
+        elif self.isVerticalLine():
+            x = self.startpoint[0]
+            y = self.m[1]
+        elif self.isClosePath():
+            x = 0.0
+            y = 0.0
+        elif self.isCubicBezier():
+            x = self.m[5]
+            y = self.m[6]
+        elif self.isMultipleCubicBeziers() or self.isQuadraticBezier():
+            x = self.m[3]
+            y = self.m[4]
+        elif self.isArc():
+            x = self.m[6]
+            y = self.m[7]
+        else:
+            print("Error: Path command not recognized.")
+
+        if self.isRelative() and (not self.isClosePath()):
+            if self.debug:
+                print("Path command uses relative coordinates.")
+            if not self.isVerticalLine():
+                x += self.startpoint[0]
+            if not self.isHorizontalLine():
+                y += self.startpoint[1]
+
+        self.endpoint = (x, y)
+
+        if self.debug:
+            print("Cursor is at ({:.2f},{:.2f}).".format(x, y))
+
+        return self.endpoint
 
     #
     # Convert segment back to string
@@ -131,21 +206,31 @@ class SVGPathDefinition:
         if d is None:
             return
 
-        #print(rSVGPathSegment.match(s).groups())
-        results = rSVGPathSegment.findall(d)
+        #print(rSVGPathCommand.match(s).groups())
+        results = rSVGPathCommand.findall(d)
         if self.debug:
-            print("Parsing path definition attribute: \"{:s}\"".format(d))
+            print("Parsing path definition: \"{:s}\"".format(d))
             #print("Intermediate results: {:s}".format(str(results)))
+
+        # Walk along the path and store the points
+        cursor = (0.0, 0.0)
+        self.points = [cursor]
         for match in results:
-            self.segments.append(SVGPathSegment(match, debug=self.debug))
-        if self.debug:
-            print("Results: {:s}".format(str([str(seg) for seg in self.segments])))
+            cmd = SVGPathCommand(command=match, startpoint=cursor, debug=self.debug)
+            self.segments.append(cmd)
+            cursor = cmd.getEndpoint()
+            self.points.append(cursor)
+
         #
         # TODO: Verification
         #  1. The number of characters must be equal in source and parsed content.
         #  2. The number of numeric values must be equal in source and parsed content.
         #  3. Characters other than the above segment commands are forbidden.
         #
+
+        if self.debug:
+            print("Results: {:s}".format(str([str(seg) for seg in self.segments])))
+            print("Points: {:s}".format(str(self.points)))
 
     #
     # Return the number of segments in self path description
@@ -154,33 +239,11 @@ class SVGPathDefinition:
         return len(self.segments)
 
     #
-    # Return the relative cursor coordinates,
-    # optionally at the indexed segment
+    # Return the path's points
+    # relative to the path's origin
     #
-    def getSegmentCoordinates(self, index=None):
-        coordinates = []
-        cursorX, cursorY = 0.00, 0.00
-        for i in range(len(self.segments)):
-            if self.debug:
-                print("Cursor at relative ({:.2f},{:.2f})".format(cursorX, cursorY))
-            coordinates.append([cursorX, cursorY])
-            segment = self.segments[i]
-            if self.debug:
-                print(str(segment))
-            if segment.isClosePath():
-                cursorX, cursorY = 0.00, 0.00
-            elif segment.isAbsolute():
-                if segment.isMoveTo() or segment.isLineTo():
-                    cursorX, cursorY = segment.getX(), segment.getY()
-            elif segment.isRelative():
-                if segment.isMoveTo() or segment.isLineTo():
-                    cursorX += segment.getX()
-                    cursorY += segment.getY()
-            if self.debug:
-                print("Cursor at relative ({:.2f},{:.2f})".format(cursorX, cursorY))
-        if index is None:
-            return coordinates
-        return coordinates[index]
+    def getPoints(self):
+        return self.points
 
     #
     # Export as string
@@ -225,7 +288,7 @@ class SVGPathDefinition:
 
 
 if __name__ == "__main__":
-    d = "M 10 10 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
-    D = SVGPathDefinition(path=None, d=d, debug=True)
-    P = D.getSegmentCoordinates()
-    print("Parsed path points: {:s}".format(str(P)))
+    s = "M 10 10 m 1.0 2.0 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 M 2 1 z"
+    path = SVGPathDefinition(path=None, d=s, debug=True)
+    points = D.getPoints()
+    #print("Parsed path points: {:s}".format(str(points)))
