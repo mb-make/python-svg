@@ -101,6 +101,12 @@ class SVGParser(xml.sax.ContentHandler):
         #print(content)
         return
 
+    def getElementList(self):
+        return self.elementList
+
+    def getPaths(self):
+        return self.paths
+
 
 # Self-test
 if __name__ == "__main__":

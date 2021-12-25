@@ -7,6 +7,7 @@
 from element import SVGElement
 from path_d import SVGPathDefinition
 import sys
+import numpy as np
 
 
 #
@@ -50,3 +51,18 @@ class SVGPath(SVGElement):
                 new_path = Path()
 
         return paths
+
+    def getPoints(self):
+        return self.d.getPoints()
+
+    def getNPX(self):
+        a = []
+        for p in self.getPoints():
+            a.append(p[0])
+        return np.array(a)
+
+    def getNPY(self):
+        a = []
+        for p in self.getPoints():
+            a.append(p[1])
+        return np.array(a)
