@@ -88,14 +88,14 @@ class SVGPathCommand:
             print("Parsing path command: {:s}".format(str(command)))
 
         i = 0
-        anyCommand = "mMlLvVhHcCqQsStTA"
-        if not command[0] in anyCommand:
-            # Command character omission implies repetition
-            self.m = [previousCommand.m[0]]
-        else:
+        anyCommand = "mMlLvVhHcCqQsStTaAzZ"
+        if command[0] in anyCommand:
             # First list element is command character
             self.m = [command[0]]
             i = 1
+        else:
+            # Command character omission implies repetition
+            self.m = [previousCommand.m[0]]
 
         # Following list elements: float values
         if len(command) > 1:
