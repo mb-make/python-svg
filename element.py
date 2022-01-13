@@ -38,6 +38,21 @@ class SVGElement():
         # (this matrix already includes the transformations of parent elements)
         self.ctm = None
 
+    def getTag(self):
+        return self.tag
+
+    def getAttributes(self):
+        return self.attributes
+
+    def getSVG(self):
+        return self.parentSVG
+
+    def getParent(self):
+        return self.parentElement
+
+    def getChildren(self):
+        return self.children
+
     #
     # Parse the coordinates transformation attribute
     #
