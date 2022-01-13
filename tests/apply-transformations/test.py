@@ -37,4 +37,5 @@ points = path.getPoints()
 print(points)
 
 print("Transformed with path matrix:")
-# TODO...
+for p in points:
+    pt = matrixPath.applyToPoint(p, debug=True)
