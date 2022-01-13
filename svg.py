@@ -81,7 +81,7 @@ class SVGParser(xml.sax.ContentHandler):
         if tag == "path":
             e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             self.paths.append(e)
-        elif tag in self.tagsWithChildren:
+        elif tag.lower() in self.tagsWithChildren:
             #e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
             self.currentParents.append(e)
@@ -98,15 +98,20 @@ class SVGParser(xml.sax.ContentHandler):
     # XML parser callback: an elements ends
     #
     def endElement(self, tag):
-        if tag in self.tagsWithChildren:
+        if tag.lower() in self.tagsWithChildren:
             if len(self.currentParents) > 0:
                 lastParent = self.currentParents.pop(len(self.currentParents)-1)
             self.descentLevel -= 1
             if self.debug:
                 print("</{:s}>; ascending to level: {:d}".format(tag, self.descentLevel))
 
+            # Ascending above root element indicates a parser of SVG error
+            if self.descentLevel < 0:
+                print("Error: Encountered more closing tags than were opened.")
+                sys.exit(1)
+
             # Verify, the current parent element is what we expect it to be
-            if lastParent.getTag() != tag:
+            if lastParent.getTag().lower() != tag.lower():
                 print("Error: Expected closing tag for {:s}, but got closing tag for {:s}.".format(lastParent.getTag(), tag))
                 sys.exit(1)
 
