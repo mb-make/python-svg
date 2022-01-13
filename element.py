@@ -90,10 +90,12 @@ class SVGElement():
     # as SVGMatrix
     #
     def calculateCTM(self):
-        myMatrix = self.transform.getTransformationMatrix()
+        transform = self.getTransform()
+        myMatrix = transform.getTransformationMatrix()
         if self.parentElement is None:
             self.ctm = myMatrix
-        parentCTM = self.parent.getCTM()
+            return
+        parentCTM = self.parentElement.getCTM()
         self.ctm = myMatrix.applyToMatrix(parentCTM)
 
     #
@@ -103,6 +105,9 @@ class SVGElement():
     def getCTM(self):
         if self.ctm is None:
             self.calculateCTM()
+        if self.debug:
+            print("<{:s}>: ctm =".format(self.getTag()))
+            print(str(self.ctm))
         return self.ctm
 
 
