@@ -49,21 +49,28 @@ class SVGMatrix:
 
     def applyToPoint(self, point, debug=False):
         if debug or self.debug:
-            print("Applying matrix \n{:s}\nto point{:s}\n".format(str(self.matrix), str(point)))
-        pAbs = np.matmul(point, self.matrix)
+            print("Applying matrix \n{:s}\nto point\n{:s}\n".format(str(self.matrix), str(point)))
+        if point.size == 2:
+            point = np.array([point[0], point[1], 0]).T
+            if debug or self.debug:
+                print("Point expanded to:")
+                print(point)
+        pointTransformed = np.matmul(point, self.matrix)
         if debug or self.debug:
-            print("Result: \n{:s}\n".format(str(pAbs)))
-        return pAbs
+            print("Result: \n{:s}\n".format(str(pointTransformed)))
+        if pointTransformed.size == 3:
+            pointTransformed = np.array([pointTransformed[0], pointTransformed[1]])
+        return pointTransformed
 
     def applyToMatrix(self, matrix, debug=False):
         if debug or self.debug:
             print("Applying matrix \n{:s}\nto matrix\n{:s}\n".format(str(self.matrix), str(matrix)))
         if type(matrix) is SVGMatrix:
             matrix = matrix.getMatrix()
-        mAbs = np.matmul(matrix, self.matrix)
+        matrixTransformed = np.matmul(matrix, self.matrix)
         if debug or self.debug:
-            print("Result: \n{:s}\n".format(str(mAbs)))
-        return mAbs
+            print("Result: \n{:s}\n".format(str(matrixTransformed)))
+        return SVGMatrix(npMatrix=matrixTransformed, debug=self.debug)
 
 
 #
@@ -280,7 +287,7 @@ if __name__ == "__main__":
     #print("Transformation matrix:")
     l.getTransformationMatrix()
 
-    transform = "rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
+    transform = "translate(10, 20); translate(3, 4); rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
     print("Importing a valid transformation list: \"{:s}\"".format(transform))
     l = SVGTransformList(None, transform, debug=True)
     result = str(l)
@@ -296,3 +303,16 @@ if __name__ == "__main__":
     #result = str(l)
     #print("Result: 'transform=\"{:s}\"'".format(result))
     #assert result == "test"
+
+    print("Testing point transformation:")
+    transform = "translate(10, 20); translate(3, 4);"
+    l = SVGTransformList(None, transform, debug=True)
+    result = str(l)
+    print("Result: 'transform=\"{:s}\"'".format(result))
+    m = l.getTransformationMatrix()
+    print("Transforming point:")
+    p = np.array([1, 1])
+    print(p)
+    pNew = m.applyToPoint(p, debug=True)
+    print("Result:")
+    print(pNew)
