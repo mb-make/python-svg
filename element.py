@@ -44,10 +44,23 @@ class SVGElement():
     def getAttributes(self):
         return self.attributes
 
-    def getSVG(self):
+    def getAttribute(self, key):
+        if key in self.attributes.keys():
+            return self.attributes[key]
+        return None
+
+    def setAttribute(self, key, value):
+        if self.attributes is None:
+            self.attributes = {}
+        self.attributes[key] = value
+
+    def deleteAttribute(self, key):
+        self.attributes.pop(key)
+
+    def getParentSVG(self):
         return self.parentSVG
 
-    def getParent(self):
+    def getParentElement(self):
         return self.parentElement
 
     def getChildren(self):
