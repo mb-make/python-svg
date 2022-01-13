@@ -37,5 +37,22 @@ points = path.getPoints()
 print(points)
 
 print("Transformed with path matrix:")
+points2 = []
 for p in points:
-    pt = matrixPath.applyToPoint(p, debug=True)
+    pt = matrixPath.applyToPoint(p, debug=False)
+    points2.append(pt)
+print(points2)
+
+print("Further transformed with group matrix:")
+points3 = []
+for p in points2:
+    pt = matrixG.applyToPoint(p, debug=False)
+    points3.append(pt)
+print(points3)
+
+print("In comparison to being transformed with the path's CTM matrix:")
+points4 = []
+for p in points:
+    pt = ctm.applyToPoint(p, debug=False)
+    points4.append(pt)
+print(points4)

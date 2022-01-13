@@ -64,8 +64,8 @@ class SVGMatrix:
         if debug or self.debug:
             print("Result: \n{:s}\n".format(str(pointTransformed)))
 
-        if pointTransformed.size == 3:
-            pointTransformed = np.array([pointTransformed[0], pointTransformed[1]])
+        #if pointTransformed.size == 3:
+        pointTransformed = (float(pointTransformed[0][0]), float(pointTransformed[1][0]))
         return pointTransformed
 
     def applyToMatrix(self, matrix, debug=False):
