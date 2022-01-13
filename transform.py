@@ -134,11 +134,11 @@ class SVGTransformList():
             self.matrix = SVGMatrix()
             return
         self.matrix = self.transformations[0].getMatrix()
-        if self.debug:
-            print("Calculating transformation matrix beginning with:")
-            print(str(self.transformations[0])+"=")
-            print(str(self.matrix))
         if len(self.transformations) > 1:
+            if self.debug:
+                print("Calculating transformation matrix beginning with:")
+                print(str(self.transformations[0])+"=")
+                print(str(self.matrix))
             for t in self.transformations[1:]:
                 individualTransformMatrix = t.getMatrix()
                 if self.debug:
