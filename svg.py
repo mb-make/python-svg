@@ -4,6 +4,7 @@
 # especially SVGs exported from OpenSCAD
 #
 
+import sys
 import xml.sax
 from element import SVGElement
 from path import SVGPath
@@ -14,6 +15,16 @@ from path import SVGPath
 # also stores relevant information.
 #
 class SVGParser(xml.sax.ContentHandler):
+    tagsWithChildren = [
+        "svg",
+        "metadata",
+        "rdf:rdf",
+        "cc:work",
+        "dc:format",
+        "dc:title",
+        "g"
+        ]
+
     def __init__(self, filename=None, debug=False):
         self.debug = debug
         if filename is None:
@@ -70,13 +81,13 @@ class SVGParser(xml.sax.ContentHandler):
         if tag == "path":
             e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             self.paths.append(e)
-        elif tag == "g":
+        elif tag in self.tagsWithChildren:
             #e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
-            e = SVGElement(svg=self, parent=parent, tag="g", attributes=attributes, debug=self.debug)
+            e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
             self.currentParents.append(e)
             self.descentLevel += 1
             if self.debug:
-                print("Begin group; descending to level: ", self.descentLevel)
+                print("<{:s}>; expecting children; descending to level: {:d}".format(tag, self.descentLevel))
         else:
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
 
@@ -87,12 +98,17 @@ class SVGParser(xml.sax.ContentHandler):
     # XML parser callback: an elements ends
     #
     def endElement(self, tag):
-        if tag == "g":
+        if tag in self.tagsWithChildren:
             if len(self.currentParents) > 0:
-                self.currentParents.pop(len(self.currentParents)-1)
+                lastParent = self.currentParents.pop(len(self.currentParents)-1)
             self.descentLevel -= 1
             if self.debug:
-                print("End group; ascending to level: ", self.descentLevel)
+                print("</{:s}>; ascending to level: {:d}".format(tag, self.descentLevel))
+
+            # Verify, the current parent element is what we expect it to be
+            if lastParent.getTag() != tag:
+                print("Error: Expected closing tag for {:s}, but got closing tag for {:s}.".format(lastParent.getTag(), tag))
+                sys.exit(1)
 
     #
     # XML parser callback: tag content is read
@@ -100,6 +116,9 @@ class SVGParser(xml.sax.ContentHandler):
     def characters(self, content):
         #print(content)
         return
+
+    def getSVG(self):
+        return self.elementTree
 
     def getElementList(self):
         return self.elementList
