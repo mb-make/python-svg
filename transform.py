@@ -34,9 +34,12 @@ rTransform = re.compile("(matrix|translate||scale|rotate|skewX|skewY)[ \t]*\(([\
 #  https://www.scriptverse.academy/tutorials/python-matrix-multiplication.html
 #
 class SVGMatrix:
-    def __init__(self, a=1, b=0, c=0, d=1, e=0, f=0, debug=False):
+    def __init__(self, a=1, b=0, c=0, d=1, e=0, f=0, npMatrix=None, debug=False):
         self.debug = debug
-        self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
+        if npMatrix is None:
+            self.matrix = np.array([[a, c, e], [b, d, f], [0, 0, 1]])
+        else:
+            self.matrix = npMatrix
 
     def getMatrix(self):
         return self.matrix
