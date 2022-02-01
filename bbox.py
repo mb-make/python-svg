@@ -8,15 +8,12 @@ from element import SVGElement
 # to test whether other elements are touched or contained
 #
 class SVGBoundingBox(SVGElement):
-    def __init__(self, fromElement=None, id=None, minX=None, minY=None, maxX=None, maxY=None):
+    def __init__(self, fromElement=None, minX=None, minY=None, maxX=None, maxY=None):
         if not (fromElement is None):
-            self.id = fromElement.attributes["id"]
             self.minX = fromElement.getMinX()
             self.maxX = fromElement.getMaxX()
             self.minY = fromElement.getMinY()
             self.maxY = fromElement.getMaxY()
-        if not (id is None):
-            self.id = id
         if not (minX is None):
             self.minX = minX
         if not (minY is None):
@@ -25,6 +22,18 @@ class SVGBoundingBox(SVGElement):
             self.maxX = maxX
         if not (maxY is None):
             self.maxY = maxY
+
+    def getMinX(self):
+        return self.minX
+
+    def getMinY(self):
+        return self.minY
+
+    def getMaxX(self):
+        return self.maxX
+
+    def getMaxY(self):
+        return self.maxY
 
     #
     # Return true, if the point lies inside the bbox,
@@ -39,19 +48,20 @@ class SVGBoundingBox(SVGElement):
             return False
         if y > self.maxY:
             return False
+        return True
 
     #
     # Return true, if the target element is completely enclosed by the bbox,
     # return false otherwise
     #
     def containsElement(self, element):
-        if element.getMinX() < self.minX:
+        if element.getMinX() < self.getMinX():
             return False
-        if element.getMaxX() > self.maxX:
+        if element.getMaxX() > self.getMaxX():
             return False
-        if element.getMinY() < self.minY:
+        if element.getMinY() < self.getMinY():
             return False
-        if element.getMaxY() > self.maxY:
+        if element.getMaxY() > self.getMaxY():
             return False
         return True
 

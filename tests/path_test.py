@@ -22,12 +22,12 @@ def testSerialization():
 
 def testSplitting():
     # TODO
-    return True
+    raise
 
 
 def testInPlaceSplitting():
     # TODO
-    return True
+    raise
 
 
 if __name__ == "__main__":
