@@ -5,28 +5,49 @@ sys.path.append("..")
 from element import SVGElement
 
 
-def testSVGElement():
-    #
-    # Verify transformation attribute parsing
-    #
-    transform = 'matrix(1,2,3,4,5,6);rotate(45), translate(2.0 1e3)'
-    print("Parsing transform attribute:\n\ttransform=\"{:s}\"".format(transform))
+def testDeserialize():
+    e = SVGElement(
+            svg=None,
+            parent=None,
+            tag="path",
+            attributes={"transform": "test"},
+            debug=False
+            )
+    assert(e.getTag() == "path")
+    assert(len(e.getAttributes()) == 1)
+    assert(e.getAttribute("nonexistent") is None)
+    assert(e.getAttribute("transform") == "test")
+    e.deleteAttribute("transform")
+    assert(len(e.getAttributes()) == 0)
 
+
+def testSerialize():
+    e = SVGElement(
+            svg=None,
+            parent=None,
+            tag="path",
+            attributes={"transform": "test"},
+            debug=False
+            )
+    s = str(e)
+    assert(s == "<path transform=\"test\"/>")
+
+
+def testTransform():
     e = SVGElement(
             svg=None,
             parent=None,
             tag=None,
-            attributes={"transform": transform},
+            attributes={"transform": "rotate(90)"},
             debug=True
             )
-    #print(e)
-    t = e.getTransform()
-    #print(str(t))
-    m = t.getTransformationMatrix()
-    #print(str(m))
-
-    # TODO: asserts...
+    m = e.getTransformationMatrix()
+    p = (0.0, 1.0)
+    result = m.applyToPoint(p, debug=True)
+    assert(result == (1.0, 0.0))
 
 
 if __name__ == "__main__":
-    testSVGElement()
+    testDeserialize()
+    testSerialize()
+    testTransform()

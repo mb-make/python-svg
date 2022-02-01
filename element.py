@@ -24,7 +24,7 @@ class SVGElement():
     # An element is initialized by setting the XML tag name and attributes.
     # Additionally the containing SVG is referenced.
     #
-    def __init__(self, svg=None, parent=None, tag=None, attributes=None, debug=False):
+    def __init__(self, svg=None, parent=None, tag="element", attributes={}, debug=False):
         self.debug = debug
         self.parentSVG = svg
         self.parentElement = parent
@@ -33,7 +33,7 @@ class SVGElement():
         self.children = []
         # Increase speed: only parse if necessary
         #self.parseTransform()
-        self.transform = None
+        self.parsedTransform = None
         # Current transformation matrix for this element and it's children
         # (this matrix already includes the transformations of parent elements)
         self.ctm = None
@@ -66,23 +66,49 @@ class SVGElement():
     def getChildren(self):
         return self.children
 
+    def __str__(self):
+        s = "<{:s}".format(self.tag)
+        for key in self.attributes.keys():
+            s += " {:s}=".format(key)
+            value = self.attributes[key]
+            t = type(value)
+            if t == int:
+                s += "{:d}".format(value)
+            else:
+                s += "\"{:s}\"".format(str(value))
+        selfClosing = (len(self.children) == 0)
+        if selfClosing:
+            s += "/>"
+        else:
+            s += ">"
+            for child in self.children:
+                s += str(child)
+            s += "</{:s}>".format(self.tag)
+        return s
+
     #
     # Parse the coordinates transformation attribute
     #
     def parseTransform(self):
         if ((not (self.attributes is None)) and ("transform" in self.attributes.keys())):
-            self.transform = SVGTransformList(parseFromString=self.attributes["transform"], debug=self.debug)
+            self.parsedTransform = SVGTransformList(parseFromString=self.attributes["transform"], debug=self.debug)
             return
         # Error; use empty transformation list
-        self.transform = SVGTransformList()
+        self.parsedTransform = SVGTransformList()
 
     #
     # Return the transformation list of the current element
     #
     def getTransform(self):
-        if self.transform is None:
+        if self.parsedTransform is None:
             self.parseTransform()
-        return self.transform
+        return self.parsedTransform
+
+    #
+    # Return the transformation matrix relative to the parent element
+    #
+    def getTransformationMatrix(self):
+        return self.getTransform().getTransformationMatrix()
 
     #
     # Return the current transformation matrix (CTM)
