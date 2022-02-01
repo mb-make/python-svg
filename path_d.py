@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Library to handle SVG path descriptions and segments
+# Classes to handle SVG path definitions and their segments
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
 #
 
@@ -300,10 +300,3 @@ class SVGPathDefinition:
                 if (result == None) or (segment.y > result):
                     result = segment.y
         return result
-
-
-if __name__ == "__main__":
-    s = "M 10 10 m 1.0 2.0 L 2 1 l 1 3 H 1.0 h -1 V20 v -3 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 z"
-    path = SVGPathDefinition(path=None, d=s, debug=True)
-    points = path.getPoints()
-    #print("Parsed path points: {:s}".format(str(points)))

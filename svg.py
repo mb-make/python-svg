@@ -130,8 +130,3 @@ class SVGParser(xml.sax.ContentHandler):
 
     def getPaths(self):
         return self.paths
-
-
-# Self-test
-if __name__ == "__main__":
-    f = SVGParser(filename="tests/import-export/test.svg", debug=True)

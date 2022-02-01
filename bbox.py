@@ -70,11 +70,3 @@ class SVGBoundingBox(SVGElement):
         if self.containsPoint(element.getMaxX(), element.getMinY()):
             return True
         return False
-
-
-#
-# Test SVGTemplate methods
-#
-if __name__ == "__main__":
-    template = SVGBoundingBox(minX=3, minY=4, maxX=15, maxY=20)
-    assert(template.containsPoint(4,8) == True)
