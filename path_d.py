@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Classes to handle SVG path definitions and their segments
+# Classes to handle SVG path definitions and their commands
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
 #
 
@@ -71,7 +71,7 @@ rSVGPathCommand = re.compile(sSVGPathCommand)
 #
 class SVGPathCommand:
     #
-    # Parse path segment from regular expression match
+    # Parse path command from regular expression match
     #
     def __init__(self, command, startpoint=(0,0), previousCommand=None, debug=False):
         self.debug = debug
@@ -193,7 +193,7 @@ class SVGPathCommand:
         return self.endpoint
 
     #
-    # Convert segment back to string
+    # Convert command back to string
     #
     def __str__(self):
         return " ".join([str(e) for e in self.m])
@@ -212,7 +212,7 @@ class SVGPathDefinition:
         self.debug = debug
 
         # initialize empty
-        self.segments = []
+        self.commands = []
         if d is None:
             return
 
@@ -228,30 +228,42 @@ class SVGPathDefinition:
         cmd = None
         for match in results:
             cmd = SVGPathCommand(command=match, startpoint=cursor, previousCommand=cmd, debug=self.debug)
-            self.segments.append(cmd)
+            self.commands.append(cmd)
             cursor = cmd.getEndpoint()
             self.points.append(cursor)
 
-        # If the first segment is not drawn, then the startpoint is not treated as a curve point.
-        if self.segments[0].isMoveTo():
+        # If the first command is not drawn, then the startpoint is not treated as a curve point.
+        if self.commands[0].isMoveTo():
             self.points.pop(0)
 
         #
         # TODO: Verification
         #  1. The number of characters must be equal in source and parsed content.
         #  2. The number of numeric values must be equal in source and parsed content.
-        #  3. Characters other than the above segment commands are forbidden.
+        #  3. Characters other than the above command commands are forbidden.
         #
 
         if self.debug:
-            print("Results: {:s}".format(str([str(seg) for seg in self.segments])))
+            print("Results: {:s}".format(str([str(command) for command in self.commands])))
             print("Points: {:s}".format(str(self.points)))
 
     #
-    # Return the number of segments in self path description
+    # Return the number of commands in self path description
     #
     def __len__(self):
-        return len(self.segments)
+        return len(self.commands)
+
+    #
+    # Return the parsed array of of path commands
+    #
+    def getCommands(self):
+        return self.commands
+
+    #
+    # Return a specific command
+    #
+    def getCommand(self, index):
+        return self.commands[index]
 
     #
     # Return the path's points
@@ -264,39 +276,39 @@ class SVGPathDefinition:
     # Export as string
     #
     def __str__(self):
-        return " ".join([str(segment) for segment in self.segments])
+        return " ".join([str(command) for command in self.commands])
 
     #
     # min/max functions
     #
-    def minX(self):
+    def getMinX(self):
         result = None
-        for segment in self.segments:
-            if "ML".find(segment.type) > -1:
-                if (result == None) or (segment.x < result):
-                    result = segment.x
+        for command in self.commands:
+            if "ML".find(command.type) > -1:
+                if (result == None) or (command.x < result):
+                    result = command.x
         return result
 
-    def maxX(self):
+    def getMaxX(self):
         result = None
-        for segment in self.segments:
-            if "ML".find(segment.type) > -1:
-                if (result == None) or (segment.x > result):
-                    result = segment.x
+        for command in self.commands:
+            if "ML".find(command.type) > -1:
+                if (result == None) or (command.x > result):
+                    result = command.x
         return result
 
-    def minY(self):
+    def getMinY(self):
         result = None
-        for segment in self.segments:
-            if "ML".find(segment.type) > -1:
-                if (result == None) or (segment.y < result):
-                    result = segment.y
+        for command in self.commands:
+            if "ML".find(command.type) > -1:
+                if (result == None) or (command.y < result):
+                    result = command.y
         return result
 
-    def maxY(self):
+    def getMaxY(self):
         result = None
-        for segment in self.segments:
-            if "ML".find(segment.type) > -1:
-                if (result == None) or (segment.y > result):
-                    result = segment.y
+        for command in self.commands:
+            if "ML".find(command.type) > -1:
+                if (result == None) or (command.y > result):
+                    result = command.y
         return result
