@@ -34,6 +34,12 @@ The library parses path definitions (the "d" attribute of path elements).
 Read more about path commands here:
 https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#path_commands
 
+## Testing
+
+In a console run:
+~~~
+$ pytest -v
+~~~
 
 ## License
 
