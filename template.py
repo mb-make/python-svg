@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from svg import SVG
+from svg import SVGParser
 from bbox import SVGBoundingBox
 
 
