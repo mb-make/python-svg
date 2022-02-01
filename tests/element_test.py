@@ -5,7 +5,7 @@ sys.path.append("..")
 from element import SVGElement
 
 
-def testDeserialize():
+def testParsing():
     e = SVGElement(
             svg=None,
             parent=None,
@@ -21,7 +21,7 @@ def testDeserialize():
     assert(len(e.getAttributes()) == 0)
 
 
-def testSerialize():
+def testSerialization():
     e = SVGElement(
             svg=None,
             parent=None,
@@ -33,7 +33,7 @@ def testSerialize():
     assert(s == "<path transform=\"test\"/>")
 
 
-def testTransform():
+def testTransformation():
     e = SVGElement(
             svg=None,
             parent=None,

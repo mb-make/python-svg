@@ -15,12 +15,48 @@ import numpy as np
 # for every <path/> element encountered in an SVG
 #
 class SVGPath(SVGElement):
-    def __init__(self, svg=None, parent=None, attributes=[], debug=False):
-        self.debug = debug
+    def __init__(self, svg=None, parent=None, attributes={}, debug=False):
         super().__init__(svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
-        if not ("d" in self.attributes.keys()):
-            self.attributes["d"] = ""
-        self.d = SVGPathDefinition(path=self, d=self.attributes["d"], debug=self.debug)
+        if "d" in self.attributes.keys():
+            d = self.attributes["d"]
+            self.attributes["d"] = SVGPathDefinition(path=self, d=d, debug=self.debug)
+
+    # Return this object's path definition object
+    def getD(self):
+        if "d" in self.attributes.keys():
+            return self.attributes["d"]
+        return None
+
+    # Update path definition string
+    def setD(self, s):
+        self.attributes["d"] = SVGPathDefinition(path=self, d=s, debug=self.debug)
+
+    # Return the path definition's array of (x,y) values (numpy type)
+    def getPoints(self):
+        d = self.getD()
+        if d is None:
+            return None
+        return d.getPoints()
+
+    # Return an array of the path definition's X coordinates (numpy type)
+    def getX(self):
+        points = self.getPoints()
+        if points is None:
+            return None
+        a = []
+        for p in points:
+            a.append(p[0])
+        return np.array(a)
+
+    # Return an array of the path definition's Y coordinates (numpy type)
+    def getY(self):
+        points = self.getPoints()
+        if points is None:
+            return None
+        a = []
+        for p in points:
+            a.append(p[1])
+        return np.array(a)
 
     #
     # If this path has a parent element,
@@ -51,18 +87,3 @@ class SVGPath(SVGElement):
                 new_path = Path()
 
         return paths
-
-    def getPoints(self):
-        return self.d.getPoints()
-
-    def getNPX(self):
-        a = []
-        for p in self.getPoints():
-            a.append(p[0])
-        return np.array(a)
-
-    def getNPY(self):
-        a = []
-        for p in self.getPoints():
-            a.append(p[1])
-        return np.array(a)
