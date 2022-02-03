@@ -105,10 +105,20 @@ class SVGElement():
         return self.parsedTransform
 
     #
-    # Return the transformation matrix relative to the parent element
+    # Return the transformation matrix
+    # relative to the parent element
+    # as NumPy matrix
     #
-    def getTransformationMatrix(self):
-        return self.getTransform().getTransformationMatrix()
+    def getMatrix(self):
+        return self.getSVGMatrix().getMatrix()
+
+    #
+    # Return the transformation matrix
+    # relative to the parent element
+    # as SVGMatrix object
+    #
+    def getSVGMatrix(self):
+        return self.getTransform().getSVGMatrix()
 
     #
     # Return the current transformation matrix (CTM)
@@ -116,13 +126,12 @@ class SVGElement():
     # as SVGMatrix
     #
     def calculateCTM(self):
-        transform = self.getTransform()
-        myMatrix = transform.getTransformationMatrix()
+        m = self.getSVGMatrix()
         if self.parentElement is None:
-            self.ctm = myMatrix
+            self.ctm = m
             return
         parentCTM = self.parentElement.getCTM()
-        self.ctm = myMatrix.applyToMatrix(parentCTM)
+        self.ctm = m.applyToMatrix(parentCTM)
 
     #
     # Return the current transformation matrix

@@ -41,7 +41,7 @@ def testTransformation():
             attributes={"transform": "rotate(90)"},
             debug=True
             )
-    m = e.getTransformationMatrix()
+    m = e.getSVGMatrix()
     p = (0.0, 1.0)
     result = m.applyToPoint(p, debug=True)
     assert(result == (1.0, 0.0))

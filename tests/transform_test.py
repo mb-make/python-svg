@@ -27,7 +27,7 @@ def testSVGTransformList():
     #assert result == "rotate(30)"
 
     #print("Transformation matrix:")
-    l.getTransformationMatrix()
+    l.getMatrix()
 
     #print("Importing an illegal transformation list...")
     #transform = "test ()"
@@ -44,7 +44,7 @@ def testSVGTransformList():
     l = SVGTransformList(None, transform, debug=True)
     result = str(l)
     print("Result: 'transform=\"{:s}\"'".format(result))
-    m = l.getTransformationMatrix()
+    m = l.getSVGMatrix()
     print("Transforming point:")
     p = np.array([1, 1])
     print(p)

@@ -130,9 +130,16 @@ class SVGTransformList():
 
     #
     # Return the effective cumulative transformation
-    # of all transformations in this list
+    # of all transformations in this list as NumPy matrix
     #
-    def getTransformationMatrix(self):
+    def getMatrix(self):
+        return self.getSVGMatrix().getMatrix()
+
+    #
+    # Return the effective cumulative transformation
+    # of all transformations in this list as SVGMatrix
+    #
+    def getSVGMatrix(self):
         if self.matrix is None:
             self.calculateTransformationMatrix()
         return self.matrix

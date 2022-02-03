@@ -16,7 +16,7 @@ print(g.getTag())
 print("transform =")
 t = g.getTransform()
 print(str(t))
-matrixG = t.getTransformationMatrix()
+matrixG = t.getSVGMatrix()
 print(str(matrixG))
 
 path = g.getChildren()[0]
@@ -25,7 +25,7 @@ print(path.getTag())
 print("transform =")
 t = path.getTransform()
 print(str(t))
-matrixPath = t.getTransformationMatrix()
+matrixPath = t.getSVGMatrix()
 print(str(matrixPath))
 
 ctm = path.getCTM()
