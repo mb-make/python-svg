@@ -25,6 +25,13 @@ def testSerialization():
     assert(str(p) == "<path d=\"M 2.0 1.0 L 5.2 3.4\"/>")
 
 
+def testMetrics():
+    p = SVGPath(attributes = {"d": "M 1 2 L 3 5"})
+    assert(p.getWidth() == 2)
+    assert(p.getHeight() == 3)
+    assert(len(p) == 2)
+
+
 def testBoundingBox():
     p = SVGPath(attributes = {"d": "M 1 2 L 3 4"})
     b = SVGBoundingBox(
@@ -35,6 +42,21 @@ def testBoundingBox():
             )
     assert(b.containsElement(p) == True)
     assert(p.containsElement(b) == True)
+    assert(b.touchesElement(p) == True)
+    assert(p.touchesElement(b) == True)
+
+    b = SVGBoundingBox(
+            minX=2,
+            minY=3,
+            maxX=4,
+            maxY=5
+            )
+    assert(b.containsElement(p) == False)
+    assert(p.containsElement(b) == False)
+    assert(b.touchesElement(p) == True)
+    assert(p.touchesElement(b) == True)
+
+    # TODO: quadratic, ellipsoid, arc, etc.
 
 
 def testSplitting():
