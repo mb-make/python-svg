@@ -29,7 +29,7 @@ class SVGElement():
         self.parentSVG = svg
         self.parentElement = parent
         self.tag = tag
-        self.attributes = attributes
+        self.attributes = dict(attributes)
         self.children = []
         # Increase speed: only parse if necessary
         #self.parseTransform()
