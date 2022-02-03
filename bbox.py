@@ -7,7 +7,7 @@ from element import SVGElement
 # Defines a rectangular box and implements methods
 # to test whether other elements are touched or contained
 #
-class SVGBoundingBox(SVGElement):
+class SVGBoundingBox():
     def __init__(self, fromElement=None, minX=None, minY=None, maxX=None, maxY=None):
         if not (fromElement is None):
             self.minX = fromElement.getMinX()
@@ -34,6 +34,12 @@ class SVGBoundingBox(SVGElement):
 
     def getMaxY(self):
         return self.maxY
+
+    def getWidth(self):
+        return abs(self.getMaxX() - self.getMinX())
+
+    def getHeight(self):
+        return abs(self.getMaxY() - self.getMinY())
 
     #
     # Return true, if the point lies inside the bbox,
