@@ -41,6 +41,12 @@ def testSerialization():
         d = SVGPathDefinition(path=None, d=s, debug=True)
         assert(str(d) == s)
 
+
+def testSplitting():
+    raise
+
+
 if __name__ == "__main__":
     testParsing()
     testSerialization()
+    testSplitting()
