@@ -90,6 +90,15 @@ class SVGTransformList():
         if  not (parseFromString is None):
             self.parseFromString(parseFromString)
 
+    def __len__(self):
+        return len(self.transformations)
+
+    def getTransformations(self):
+        return self.transformations
+
+    def getTransformation(self, index):
+        return self.transformations[index]
+
     def clear(self):
         self.transformations = []
         self.matrix = None
@@ -149,17 +158,17 @@ class SVGTransformList():
     # of all transformations in this list
     #
     def calculateTransformationMatrix(self):
-        if len(self.transformations) == 0:
+        if len(self) == 0:
             # Identity matrix
             self.matrix = SVGMatrix()
             return
-        self.matrix = self.transformations[0].getMatrix()
-        if len(self.transformations) > 1:
+        self.matrix = self.getTransformation(0).getMatrix()
+        if len(self) > 1:
             if self.debug:
                 print("Calculating transformation matrix beginning with:")
                 print(str(self.transformations[0])+"=")
                 print(str(self.matrix))
-            for t in self.transformations[1:]:
+            for t in self.getTransformations()[1:]:
                 individualTransformMatrix = t.getMatrix()
                 if self.debug:
                     print("Apply:")
@@ -173,7 +182,7 @@ class SVGTransformList():
     # Export to string
     def __str__(self):
         ts = []
-        for t in self.transformations:
+        for t in self.getTransformations():
             ts.append(str(t))
         return ", ".join(ts)
 
