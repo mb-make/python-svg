@@ -48,24 +48,31 @@ class SVGMatrix:
         return str(self.matrix)
 
     def applyToPoint(self, point, debug=False):
-        # Points provided as tuple must be converted to a NumPy array first
-        if type(point) is tuple:
-            point = np.matrix([point[0], point[1], 1.0]).T
-
-        # A vector with exactly three components is needed for matrix multiplication
-        # TODO:
-#        if point.size == 2:
-#            point = np.matrix([point[0], point[1], 0])
+        # Is point a NumPy type?
+        if ((type(point) is np.array) or (type(point) is np.ndarray) or (type(point) is np.matrix)) \
+        and (len(point.shape) > 1):
+            # Two-dimensional NumPy array: Row vector or column vector?
+            if (point.shape[0] > point.shape[1]):
+                #point = point.T
+                x = point[0, 0]
+                y = point[1, 0]
+            else:
+                x = point[0, 0]
+                y = point[0, 1]
+        else:
+            # Tuple, array or one-dimensional NumPy array
+            x = point[0]
+            y = point[1]
+        # Re-create point in the proper form
+        point = np.matrix([[x], [y], [1.0]])
 
         if debug or self.debug:
             print("Applying matrix \n{:s}\nto point\n{:s}".format(str(self.matrix), str(point)))
 
         pointTransformed = self.matrix * point
+        pointTransformed = np.array([pointTransformed[0, 0], pointTransformed[1, 0]])
         if debug or self.debug:
-            print("Result: \n{:s}\n".format(str(pointTransformed)))
-
-        #if pointTransformed.size == 3:
-        pointTransformed = (float(pointTransformed[0][0]), float(pointTransformed[1][0]))
+            print("Result: \n{:s}".format(str(pointTransformed)))
         return pointTransformed
 
     def applyToMatrix(self, matrix, debug=False):

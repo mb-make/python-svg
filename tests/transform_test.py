@@ -44,7 +44,7 @@ def assertTransformation(transform, numTransformations, expectedMatrix):
             debug=True
             )
     assert(len(t) == numTransformations)
-    m = t.getMatrix().round(3)
+    m = t.getMatrix().round(decimals=3)
     print("Resulting matrix:\n"+str(m))
     print("Expected matrix:\n"+str(expectedMatrix))
     cmp = (m == expectedMatrix)
@@ -77,13 +77,49 @@ def testMatrix():
     assertTransformation(transform, 1, matrix)
 
 
-def testApplyToPoint():
+def testApplyToPointArray():
     transform = "translate(10, 20);"
     t = SVGTransformList(None, transform, debug=True)
     m = t.getSVGMatrix()
+
+    p = [2, 1]
+    pNew = m.applyToPoint(p, debug=True)
+    assert(not (False in (pNew == [12.0, 21.0])))
+
+def testApplyToPointTuple():
+    transform = "translate(10, 20);"
+    t = SVGTransformList(None, transform, debug=True)
+    m = t.getSVGMatrix()
+
+    p = (2, 1)
+    pNew = m.applyToPoint(p, debug=True)
+    assert(not (False in (pNew == [12.0, 21.0])))
+
+def testApplyToPointNumpyArray():
+    transform = "translate(10, 20);"
+    t = SVGTransformList(None, transform, debug=True)
+    m = t.getSVGMatrix()
+
     p = np.array([2, 1])
     pNew = m.applyToPoint(p, debug=True)
-    assert(p == pNew)
+    assert(not (False in (pNew == [12.0, 21.0])))
+
+    p = np.array([[2], [1]])
+    pNew = m.applyToPoint(p, debug=True)
+    assert(not (False in (pNew == [12.0, 21.0])))
+
+def testApplyToPointNumpyMatrix():
+    transform = "translate(10, 20);"
+    t = SVGTransformList(None, transform, debug=True)
+    m = t.getSVGMatrix()
+
+    p = np.matrix([2, 1])
+    pNew = m.applyToPoint(p, debug=True)
+    assert(not (False in (pNew == [12.0, 21.0])))
+
+    p = np.matrix([[2], [1]])
+    pNew = m.applyToPoint(p, debug=True)
+    assert(not (False in (pNew == [12.0, 21.0])))
 
 
 def testApplyToMatrix():
