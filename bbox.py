@@ -40,13 +40,13 @@ class SVGBoundingBox(SVGElement):
     # return false otherwise
     #
     def containsPoint(self, x, y):
-        if x < self.minX:
+        if x < self.getMinX():
             return False
-        if x > self.maxX:
+        if x > self.getMaxX():
             return False
-        if y < self.minY:
+        if y < self.getMinY():
             return False
-        if y > self.maxY:
+        if y > self.getMaxY():
             return False
         return True
 
