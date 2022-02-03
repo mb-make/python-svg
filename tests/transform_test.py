@@ -77,55 +77,48 @@ def testSerialization():
     assert(s == transform)
 
 
-def testApplyToPointArray():
-    transform = "translate(10, 20);"
+def assertApplyToPoint(transform, point, expectedResult):
     t = SVGTransformList(None, transform, debug=True)
     m = t.getSVGMatrix()
+    pTransformed = m.applyToPoint(point, debug=True)
+    assert(not (False in (pTransformed == expectedResult)))
 
+
+def testApplyToPointArray():
+    transform = "translate(10, 20);"
     p = [2, 1]
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    pNew = [12.0, 21.0]
+    assertApplyToPoint(transform, p, pNew)
 
 
 def testApplyToPointTuple():
     transform = "translate(10, 20);"
-    t = SVGTransformList(None, transform, debug=True)
-    m = t.getSVGMatrix()
-
     p = (2, 1)
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    pNew = [12.0, 21.0]
+    assertApplyToPoint(transform, p, pNew)
 
 
 def testApplyToPointNumpyArray():
     transform = "translate(10, 20);"
-    t = SVGTransformList(None, transform, debug=True)
-    m = t.getSVGMatrix()
-
     p = np.array([2, 1])
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    pNew = [12.0, 21.0]
+    assertApplyToPoint(transform, p, pNew)
 
     p = np.array([[2], [1]])
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    assertApplyToPoint(transform, p, pNew)
 
 
 def testApplyToPointNumpyMatrix():
     transform = "translate(10, 20);"
-    t = SVGTransformList(None, transform, debug=True)
-    m = t.getSVGMatrix()
-
     p = np.matrix([2, 1])
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    pNew = [12.0, 21.0]
+    assertApplyToPoint(transform, p, pNew)
 
     p = np.matrix([[2], [1]])
-    pNew = m.applyToPoint(p, debug=True)
-    assert(not (False in (pNew == [12.0, 21.0])))
+    assertApplyToPoint(transform, p, pNew)
 
 
-def testApplyToMatrix():
+def testApplyToMatrixTranslate():
     transform = "translate(3, 2)"
     t = SVGTransformList(
             parseFromString=transform,
