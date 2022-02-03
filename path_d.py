@@ -6,6 +6,7 @@
 
 import re
 from transform import sNumeric
+import numpy as np
 
 
 #
@@ -151,7 +152,7 @@ class SVGPathCommand:
         x = self.startpoint[0]
         y = self.startpoint[1]
         if self.debug:
-            print("Moving from ({:.2f},{:.2f})".format(x, y))
+            print("Moving from ({:.2f}, {:.2f})".format(x, y))
 
         if self.isMoveTo() or self.isLineTo() or self.isMultipleQuadraticBeziers():
             x = self.m[1]
@@ -185,10 +186,10 @@ class SVGPathCommand:
             if not self.isHorizontalLine():
                 y += self.startpoint[1]
 
-        self.endpoint = (x, y)
+        self.endpoint = np.array([x, y])
 
         if self.debug:
-            print("to ({:.2f},{:.2f})".format(x, y))
+            print("to ({:.2f}, {:.2f})".format(x, y))
 
         return self.endpoint
 
@@ -223,18 +224,25 @@ class SVGPathDefinition:
             #print("Intermediate results: {:s}".format(str(results)))
 
         # Walk along the path and store the points
-        cursor = (0.0, 0.0)
-        self.points = [cursor]
+        cursor = np.array([0.0, 0.0])
+        if self.debug:
+            print("Startpoint: "+str(cursor))
+        self.points = np.array([cursor])
         cmd = None
         for match in results:
             cmd = SVGPathCommand(command=match, startpoint=cursor, previousCommand=cmd, debug=self.debug)
             self.commands.append(cmd)
             cursor = cmd.getEndpoint()
-            self.points.append(cursor)
+            if debug:
+                print("Endpoint: "+str(cursor))
+            self.points = np.append(self.points, [cursor], axis=0)
+
+        if debug:
+            print("Resulting array of points: "+str(self.points))
 
         # If the first command is not drawn, then the startpoint is not treated as a curve point.
         if self.commands[0].isMoveTo():
-            self.points.pop(0)
+            self.points = np.delete(self.points, 0, axis=0)
 
         #
         # TODO: Verification
@@ -252,6 +260,9 @@ class SVGPathDefinition:
     #
     def __len__(self):
         return len(self.commands)
+
+    def __str__(self):
+        return " ".join([str(command) for command in self.commands])
 
     #
     # Return the parsed array of of path commands
@@ -272,43 +283,17 @@ class SVGPathDefinition:
     def getPoints(self):
         return self.points
 
-    #
-    # Export as string
-    #
-    def __str__(self):
-        return " ".join([str(command) for command in self.commands])
+    def getPoint(self, index):
+        return self.points[index]
 
-    #
-    # min/max functions
-    #
     def getMinX(self):
-        result = None
-        for command in self.commands:
-            if "ML".find(command.type) > -1:
-                if (result == None) or (command.x < result):
-                    result = command.x
-        return result
-
-    def getMaxX(self):
-        result = None
-        for command in self.commands:
-            if "ML".find(command.type) > -1:
-                if (result == None) or (command.x > result):
-                    result = command.x
-        return result
+        return self.getPoints().T[0, :].min()
 
     def getMinY(self):
-        result = None
-        for command in self.commands:
-            if "ML".find(command.type) > -1:
-                if (result == None) or (command.y < result):
-                    result = command.y
-        return result
+        return self.getPoints().T[1, :].min()
+
+    def getMaxX(self):
+        return self.getPoints().T[0, :].max()
 
     def getMaxY(self):
-        result = None
-        for command in self.commands:
-            if "ML".find(command.type) > -1:
-                if (result == None) or (command.y > result):
-                    result = command.y
-        return result
+        return self.getPoints().T[1, :].max()

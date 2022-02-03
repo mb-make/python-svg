@@ -6,6 +6,7 @@
 
 from element import SVGElement
 from path_d import SVGPathDefinition
+from bbox import SVGBoundingBox
 import sys
 import numpy as np
 
@@ -14,9 +15,9 @@ import numpy as np
 # Objects of this class are created
 # for every <path/> element encountered in an SVG
 #
-class SVGPath(SVGElement):
+class SVGPath(SVGElement, SVGBoundingBox):
     def __init__(self, svg=None, parent=None, attributes={}, debug=False):
-        super().__init__(svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
+        SVGElement.__init__(self, svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
         if "d" in self.attributes.keys():
             d = self.attributes["d"]
             self.attributes["d"] = SVGPathDefinition(path=self, d=d, debug=self.debug)
@@ -31,32 +32,60 @@ class SVGPath(SVGElement):
     def setD(self, s):
         self.attributes["d"] = SVGPathDefinition(path=self, d=s, debug=self.debug)
 
+    # Return the number of points this path is comprised of
+    def __len__(self):
+        return len(self.getPoints())
+
     # Return the path definition's array of (x,y) values (numpy type)
     def getPoints(self):
         d = self.getD()
         if d is None:
-            return None
+            return np.array([])
         return d.getPoints()
 
+    # Return the n-th point of this path
+    def getPoint(self, index):
+        points = self.getPoints()
+        if index >= len(points):
+            return None
+        return points[index]
+
     # Return an array of the path definition's X coordinates (numpy type)
-    def getX(self):
+    def getPointsX(self):
         points = self.getPoints()
         if points is None:
             return None
-        a = []
-        for p in points:
-            a.append(p[0])
-        return np.array(a)
+        # a = []
+        # for p in points:
+        #     a.append(p[0])
+        # return np.array(a)
+        return points.T[0, :]
 
     # Return an array of the path definition's Y coordinates (numpy type)
-    def getY(self):
+    def getPointsY(self):
         points = self.getPoints()
         if points is None:
             return None
-        a = []
-        for p in points:
-            a.append(p[1])
-        return np.array(a)
+        # a = []
+        # for p in points:
+        #     a.append(p[1])
+        # return np.array(a)
+        return points.T[1, :]
+
+    #
+    # Overload some getters of SVGBoundingBox
+    #
+    def getMinX(self):
+        return self.getPointsX().min()
+
+    def getMinY(self):
+        return self.getPointsY().min()
+
+    def getMaxX(self):
+        return self.getPointsX().max()
+
+    def getMaxY(self):
+        return self.getPointsY().max()
 
     #
     # If this path has a parent element,

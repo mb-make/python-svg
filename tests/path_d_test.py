@@ -12,7 +12,7 @@ def testParsing():
     assert(len(d.getCommands()) == 1)
     assert(d.getCommands()[0].isMoveTo() == True)
     assert(len(d.getPoints()) == 1)
-    assert(d.getPoints()[0] == (1.0, 2.0))
+    assert(not (False in (d.getPoint(0) == [1.0, 2.0])))
 
     s = "M 10 10 m 1.0 2.0 L 2 1 1 3 H 1.0 h -1 V20 v -3 C 20 20, 40 20, 50 10 a 1   -2E2,\t3.0e1;4 5e1 6.0 7 z"
     d = SVGPathDefinition(path=None, d=s, debug=True)
