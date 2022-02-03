@@ -41,12 +41,21 @@ class SVGMatrix:
         else:
             self.matrix = npMatrix
 
+    #
+    # Return this object's transformation matrix as NumPy type
+    #
     def getMatrix(self):
         return self.matrix
 
     def __str__(self):
         return str(self.matrix)
 
+    #
+    # Apply this transformation matrix to a point
+    # given as tuple, array or NumPy array or matrix
+    #
+    # Returns a one-dimensional NumPy array with two elements: x and y
+    #
     def applyToPoint(self, point, debug=False):
         # Is point a NumPy type?
         if ((type(point) is np.array) or (type(point) is np.ndarray) or (type(point) is np.matrix)) \

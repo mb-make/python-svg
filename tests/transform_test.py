@@ -2,39 +2,8 @@
 
 import sys
 sys.path.append("..")
-from transform import SVGTransformList
+from transform import SVGTransformList, SVGTransformTranslate, SVGTransformRotate, SVGTransformMatrix
 import numpy as np
-
-
-def testParsing():
-    # Multiple transformations
-    transform = "translate(10, 20); translate(3, 4); rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
-    t = SVGTransformList(
-            parseFromString=transform,
-            debug=True
-            )
-    m = t.getMatrix()
-
-    # Illegal transform string
-    transform = "test ()"
-    t = SVGTransformList(None, transform)
-    s = str(t)
-    assert(s == "test")
-
-
-def testSerialization():
-    # Empty list
-    t = SVGTransformList(debug=True)
-    assert(str(t) == "")
-
-    # Translate
-    transform = "translate(10.000, 20.000)"
-    t = SVGTransformList(
-            parseFromString=transform,
-            debug=True
-            )
-    s = str(t)
-    assert(s == transform)
 
 
 def assertTransformation(transform, numTransformations, expectedMatrix):
@@ -53,28 +22,59 @@ def assertTransformation(transform, numTransformations, expectedMatrix):
     #assert(not (False in np.equal(m, matrixIdentity)))
 
 
-def testIdentity():
+def testParseEmpty():
     transform = ""
     matrix = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     assertTransformation(transform, 0, matrix)
 
 
-def testTranslate():
+def testParseTranslate():
     transform = "translate(4, 5)"
     matrix = np.array([[1, 0, 4], [0, 1, 5], [0, 0, 1]])
     assertTransformation(transform, 1, matrix)
 
 
-def testRotate():
+def testParseRotate():
     transform = "rotate(-45)"
     matrix = np.array([[0.707, 0.707, 0], [-0.707, 0.707, 0], [0, 0, 1]])
     assertTransformation(transform, 1, matrix)
 
 
-def testMatrix():
+def testParseMatrix():
     transform = "matrix(1, 2, 3, 4, 5, 6)"
     matrix = np.array([[1, 2, 3], [4, 5, 6], [0, 0, 1]])
     assertTransformation(transform, 1, matrix)
+
+
+def testParseSequence():
+    # Multiple transformations
+    transform = "translate(10, 20); translate(3, 4); rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
+    t = SVGTransformList(
+            parseFromString=transform,
+            debug=True
+            )
+    m = t.getMatrix()
+    assert(len(t) == 5)
+    assert(type(t.getTransformation(0)) == SVGTransformTranslate)
+    assert(type(t.getTransformation(1)) == SVGTransformTranslate)
+    assert(type(t.getTransformation(2)) == SVGTransformRotate)
+    assert(type(t.getTransformation(3)) == SVGTransformTranslate)
+    assert(type(t.getTransformation(4)) == SVGTransformMatrix)
+
+
+def testSerialization():
+    # Empty list
+    t = SVGTransformList(debug=True)
+    assert(str(t) == "")
+
+    # Translate
+    transform = "translate(10.000, 20.000)"
+    t = SVGTransformList(
+            parseFromString=transform,
+            debug=True
+            )
+    s = str(t)
+    assert(s == transform)
 
 
 def testApplyToPointArray():
@@ -86,6 +86,7 @@ def testApplyToPointArray():
     pNew = m.applyToPoint(p, debug=True)
     assert(not (False in (pNew == [12.0, 21.0])))
 
+
 def testApplyToPointTuple():
     transform = "translate(10, 20);"
     t = SVGTransformList(None, transform, debug=True)
@@ -94,6 +95,7 @@ def testApplyToPointTuple():
     p = (2, 1)
     pNew = m.applyToPoint(p, debug=True)
     assert(not (False in (pNew == [12.0, 21.0])))
+
 
 def testApplyToPointNumpyArray():
     transform = "translate(10, 20);"
@@ -107,6 +109,7 @@ def testApplyToPointNumpyArray():
     p = np.array([[2], [1]])
     pNew = m.applyToPoint(p, debug=True)
     assert(not (False in (pNew == [12.0, 21.0])))
+
 
 def testApplyToPointNumpyMatrix():
     transform = "translate(10, 20);"
