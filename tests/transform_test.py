@@ -44,7 +44,7 @@ def assertTransformation(transform, numTransformations, expectedMatrix):
             debug=True
             )
     assert(len(t) == numTransformations)
-    m = t.getMatrix()
+    m = t.getMatrix().round(3)
     print("Resulting matrix:\n"+str(m))
     print("Expected matrix:\n"+str(expectedMatrix))
     cmp = (m == expectedMatrix)

@@ -5,7 +5,7 @@ import re
 
 # Use NumPy for matrix operations (element transformations)
 import numpy as np
-from numpy import sin, cos, tan
+from numpy import sin, cos, tan, pi
 
 
 # Comma before and after "E"
@@ -214,7 +214,7 @@ class SVGTransformRotate(SVGTransformCommand):
         assert len(f) in [1, 3]
 
         # Rotate by angle in degrees
-        self.angle = float(f[0])
+        self.angle = float(f[0]) * pi / 180.0
 
         # Rotate around (alternate) origin
         self.altOrigin = (len(f) == 3)
