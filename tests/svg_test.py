@@ -5,10 +5,26 @@ sys.path.append("..")
 from svg import SVGParser
 
 
-def testSVGParser():
+def testFileImport():
+    raise
+
+
+def testFromString():
     f = SVGParser(filename="tests/import-export/test.svg", debug=True)
     # TODO: asserts...
+    raise
+
+
+def testSerialization():
+    raise
+
+
+def testFileExport():
+    raise
 
 
 if __name__ == "__main__":
-    testSVGParser()
+    testFileImport()
+    testFromString()
+    testSerialization()
+    testFileExport()

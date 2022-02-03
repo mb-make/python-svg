@@ -158,11 +158,18 @@ def testGroupApplyTransform():
 
 
 if __name__ == "__main__":
-    testParsing()
+    testParseEmpty()
+    testParseTranslate()
+    testParseRotate()
+    testParseMatrix()
+    testParseSequence()
     testSerialization()
-    testIdentity()
-    testTranslate()
-    testApplyToPoint()
-    testApplyToMatrix()
+    testApplyToPointArray()
+    testApplyToPointTuple()
+    testApplyToPointNumpyArray()
+    testApplyToPointNumpyMatrix()
+    testApplyTranslateToMatrix()
+    testApplyRotateToMatrix()
+    testApplySequenceToMatrix()
     testPathApplyTransform()
     testGroupApplyTransform()
