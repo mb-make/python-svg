@@ -7,15 +7,6 @@ import numpy as np
 
 
 def testParsing():
-    # Empty transformation list
-    t = SVGTransformList(debug=True)
-    assert(len(t) == 0)
-
-    m = t.getMatrix()
-    matrixIdentity = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    assert(m == matrixIdentity)
-    #assert(not (False in np.equal(m, matrixIdentity)))
-
     # Multiple transformations
     transform = "translate(10, 20); translate(3, 4); rotate(+30);  translate( 20,-13.5 ) ,;.\t, matrix(1e3 0.2e1 3E-2 +4 5.1E+2 -6.0e-1)"
     t = SVGTransformList(
@@ -46,7 +37,47 @@ def testSerialization():
     assert(s == transform)
 
 
-def testTransformPoint():
+def assertTransformation(transform, numTransformations, expectedMatrix):
+    print("Parsing transform string: \"{:s}\"".format(transform))
+    t = SVGTransformList(
+            parseFromString=transform,
+            debug=True
+            )
+    assert(len(t) == numTransformations)
+    m = t.getMatrix()
+    print("Resulting matrix:\n"+str(m))
+    print("Expected matrix:\n"+str(expectedMatrix))
+    cmp = (m == expectedMatrix)
+    print("Is identical:\n"+str(cmp))
+    assert(not (False in cmp))
+    #assert(not (False in np.equal(m, matrixIdentity)))
+
+
+def testIdentity():
+    transform = ""
+    matrix = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    assertTransformation(transform, 0, matrix)
+
+
+def testTranslate():
+    transform = "translate(4, 5)"
+    matrix = np.array([[1, 0, 4], [0, 1, 5], [0, 0, 1]])
+    assertTransformation(transform, 1, matrix)
+
+
+def testRotate():
+    transform = "rotate(-45)"
+    matrix = np.array([[0.707, 0.707, 0], [-0.707, 0.707, 0], [0, 0, 1]])
+    assertTransformation(transform, 1, matrix)
+
+
+def testMatrix():
+    transform = "matrix(1, 2, 3, 4, 5, 6)"
+    matrix = np.array([[1, 2, 3], [4, 5, 6], [0, 0, 1]])
+    assertTransformation(transform, 1, matrix)
+
+
+def testApplyToPoint():
     transform = "translate(10, 20);"
     t = SVGTransformList(None, transform, debug=True)
     m = t.getSVGMatrix()
@@ -55,12 +86,14 @@ def testTransformPoint():
     assert(p == pNew)
 
 
-def testTransformMatrix():
+def testApplyToMatrix():
     transform = "translate(3, 2)"
     t = SVGTransformList(
             parseFromString=transform,
             debug=True
             )
+    #TODO
+    raise
 
 
 def testPathApplyTransform():
@@ -74,7 +107,9 @@ def testGroupApplyTransform():
 if __name__ == "__main__":
     testParsing()
     testSerialization()
-    testTransformPoint()
-    testTransformMatrix()
+    testIdentity()
+    testTranslate()
+    testApplyToPoint()
+    testApplyToMatrix()
     testPathApplyTransform()
     testGroupApplyTransform()
