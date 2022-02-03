@@ -118,14 +118,35 @@ def testApplyToPointNumpyMatrix():
     assertApplyToPoint(transform, p, pNew)
 
 
-def testApplyToMatrixTranslate():
-    transform = "translate(3, 2)"
+def assertApplyToMatrix(transform, matrix, expectedMatrix):
     t = SVGTransformList(
             parseFromString=transform,
             debug=True
             )
-    #TODO
-    raise
+    m = t.getSVGMatrix().applyToMatrix(matrix).getMatrix().round(decimals=3)
+    assert(not (False in (m == expectedMatrix)))
+
+
+def testApplyTranslateToMatrix():
+    transform = "translate(3, 2)"
+    mOriginal = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    mTransformed = np.array([[1, 0, 3], [0, 1, 2], [0, 0, 1]])
+    assertApplyToMatrix(transform, mOriginal, mTransformed)
+
+
+def testApplyRotateToMatrix():
+    transform = "rotate(-45)"
+    mOriginal = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    mTransformed = np.array([[0.707, 0.707, 0], [-0.707, 0.707, 0], [0, 0, 1]])
+    assertApplyToMatrix(transform, mOriginal, mTransformed)
+
+
+def testApplySequenceToMatrix():
+    # See also: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
+    transform = "translate(50, 90); rotate(-45); translate(130,160);"
+    mOriginal = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    mTransformed = np.array([[0.707, 0.707, 255.061], [-0.707, 0.707, 111.213], [0, 0, 1]])
+    assertApplyToMatrix(transform, mOriginal, mTransformed)
 
 
 def testPathApplyTransform():
