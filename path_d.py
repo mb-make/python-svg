@@ -7,6 +7,7 @@
 import re
 from transform import sNumeric
 import numpy as np
+from copy import deepcopy
 
 
 #
@@ -67,6 +68,11 @@ rSVGPathCommand = re.compile(sSVGPathCommand)
 #print(rSVGPathCommand)
 
 
+svgPathDCommandCharsLower = "mlvhcqstaz"
+svgPathDCommandCharsUpper = "MLVHCQSTAZ"
+svgPathDCommandChars = svgPathDCommandCharsLower + svgPathDCommandCharsUpper
+
+
 #
 # Any single atomic command within an SVG path definition ("d" attribute)
 #
@@ -74,9 +80,16 @@ class SVGPathCommand:
     #
     # Parse path command from regular expression match
     #
-    def __init__(self, command, startpoint=(0,0), previousCommand=None, debug=False):
+    def __init__(self, command=[], startpoint=[0,0], previousCommand=None, debug=False):
         self.debug = debug
+        self.startpoint = np.array(startpoint)
+        self.endpoint = None
+        self.m = []
 
+        if len(command) == 0:
+            return
+        if self.debug:
+            print("Parsing path command: {:s}".format(str(command)))
         command = list(command)
 
         # Strip empty array elements at beginning and end of the list
@@ -85,16 +98,14 @@ class SVGPathCommand:
         while (len(command) > 0) and (command[len(command)-1] == ""):
             command.pop(len(command)-1)
         assert len(command) >= 1
-        if self.debug:
-            print("Parsing path command: {:s}".format(str(command)))
 
         i = 0
-        anyCommand = "mMlLvVhHcCqQsStTaAzZ"
-        if command[0] in anyCommand:
+        if command[0] in svgPathDCommandChars:
             # First list element is command character
             self.m = [command[0]]
             i = 1
         else:
+            # TODO: is character vs. is numeric
             # Command character omission implies repetition
             self.m = [previousCommand.m[0]]
 
@@ -103,8 +114,8 @@ class SVGPathCommand:
             for m in command[i:]:
                 self.m.append(float(m))
 
-        self.startpoint = startpoint
-        self.endpoint = None
+    def getCommandChar(self):
+        return self.m[0]
 
     def isMoveTo(self):
         return self.m[0].upper() == "M"
@@ -194,6 +205,31 @@ class SVGPathCommand:
         return self.endpoint
 
     #
+    # Apply a transformation matrix to this path segment
+    #
+    def transform(self, matrix, inplace=True):
+        if inplace:
+            cmd = self
+        else:
+            # TODO: Is it possible to do this? What about object references (previous command etc.)?
+            cmd = deepcopy(self)
+            # SVGPathCommand()
+            # cmd.debug = self.debug
+            # cmd.m = self.m
+            # cmd.startpoint = self.startpoint.deepcopy()
+            # cmd.endpoint = self.endpoint.deepcopy()
+        if self.debug:
+            print("Transforming startpoint from\n" + str(self.getStartpoint()))
+        cmd.startpoint = matrix.applyToPoint(self.getStartpoint())
+        if self.debug:
+            print("to\n" + str(cmd.startpoint))
+            print("Transforming endpoint from\n" + str(self.getEndpoint()))
+        cmd.endpoint = matrix.applyToPoint(self.getEndpoint())
+        if self.debug:
+            print("to\n" + str(cmd.endpoint))
+        return cmd
+
+    #
     # Convert command back to string
     #
     def __str__(self):
@@ -223,26 +259,19 @@ class SVGPathDefinition:
             print("Parsing path definition: \"{:s}\"".format(d))
             #print("Intermediate results: {:s}".format(str(results)))
 
-        # Walk along the path and store the points
+        # Walk along the path
         cursor = np.array([0.0, 0.0])
         if self.debug:
             print("Startpoint: "+str(cursor))
-        self.points = np.array([cursor])
         cmd = None
         for match in results:
             cmd = SVGPathCommand(command=match, startpoint=cursor, previousCommand=cmd, debug=self.debug)
             self.commands.append(cmd)
             cursor = cmd.getEndpoint()
-            if debug:
-                print("Endpoint: "+str(cursor))
-            self.points = np.append(self.points, [cursor], axis=0)
+            if self.debug:
+                print("Next point: "+str(cursor))
 
-        if debug:
-            print("Resulting array of points: "+str(self.points))
-
-        # If the first command is not drawn, then the startpoint is not treated as a curve point.
-        if self.commands[0].isMoveTo():
-            self.points = np.delete(self.points, 0, axis=0)
+        self.updatePoints()
 
         #
         # TODO: Verification
@@ -253,6 +282,31 @@ class SVGPathDefinition:
 
         if self.debug:
             print("Results: {:s}".format(str([str(command) for command in self.commands])))
+
+    #
+    # Whenever the path definition is altered,
+    # the array of points should be updated
+    #
+    def updatePoints(self):
+        # Walk along the path and store the points
+        cursor = np.array([0.0, 0.0])
+        if self.debug:
+            print("Startpoint: "+str(cursor))
+        self.points = np.array([cursor])
+        for cmd in self.getCommands():
+            cursor = cmd.getEndpoint()
+            if self.debug:
+                print("Next point: "+str(cursor))
+            self.points = np.append(self.points, [cursor], axis=0)
+
+        if self.debug:
+            print("Resulting array of points: "+str(self.points))
+
+        # If the first command is not drawn, then the startpoint is not treated as a curve point.
+        if self.commands[0].isMoveTo():
+            self.points = np.delete(self.points, 0, axis=0)
+
+        if self.debug:
             print("Points: {:s}".format(str(self.points)))
 
     #
@@ -274,7 +328,7 @@ class SVGPathDefinition:
     # Return a specific command
     #
     def getCommand(self, index):
-        return self.commands[index]
+        return self.getCommands()[index]
 
     #
     # Return the path's points
@@ -284,7 +338,7 @@ class SVGPathDefinition:
         return self.points
 
     def getPoint(self, index):
-        return self.points[index]
+        return self.getPoints()[index]
 
     def getMinX(self):
         return self.getPoints().T[0, :].min()
@@ -297,3 +351,16 @@ class SVGPathDefinition:
 
     def getMaxY(self):
         return self.getPoints().T[1, :].max()
+
+    #
+    # Apply a transformation matrix to all path points
+    #
+    def transform(self, matrix, inplace=True):
+        if inplace:
+            d = self
+        else:
+            # TODO: You can't do this. Object references will be incorrect.
+            #d = deepcopy(self)
+        for cmd in d.getCommands():
+            cmd.transform(matrix, inplace=inplace)
+        self.updatePoints()

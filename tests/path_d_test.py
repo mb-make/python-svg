@@ -2,7 +2,9 @@
 
 import sys
 sys.path.append("..")
+import numpy as np
 from path_d import SVGPathCommand, SVGPathDefinition
+from transform import SVGTransformList
 
 
 def testParsing():
@@ -40,6 +42,35 @@ def testSerialization():
     for s in ["M 1.0 2.0", "C 1.0 2.0 3.0 4.0 5.0 6.0"]:
         d = SVGPathDefinition(path=None, d=s, debug=True)
         assert(str(d) == s)
+
+
+def testTransformation():
+    # The path definition
+    d = SVGPathDefinition(
+            d = "M 5,6 L 3,4",
+            debug=True
+            )
+
+    # The transformation
+    transform = "translate(1, 2)"
+    t = SVGTransformList(
+            parseFromString=transform,
+            debug=True
+            )
+    m = t.getSVGMatrix()
+
+    # inplace==False
+    assert(not (False in (d.getCommand(0).transform(m, inplace=False).getStartpoint() == [1, 2])))
+    assert(not (False in (d.getCommand(0).transform(m, inplace=False).getEndpoint()   == [6, 8])))
+    assert(not (False in (d.getCommand(1).transform(m, inplace=False).getStartpoint() == [6, 8])))
+    assert(not (False in (d.getCommand(1).transform(m, inplace=False).getEndpoint()   == [4, 6])))
+
+    # inplace==True
+    d.transform(m, inplace=True)
+    assert(not (False in (d.getCommand(0).getStartpoint() == [1, 2])))
+    assert(not (False in (d.getCommand(0).getEndpoint()   == [6, 8])))
+    assert(not (False in (d.getCommand(1).getStartpoint() == [6, 8])))
+    assert(not (False in (d.getCommand(1).getEndpoint()   == [4, 6])))
 
 
 def testSplitting():
