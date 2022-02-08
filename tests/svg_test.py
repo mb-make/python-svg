@@ -6,17 +6,22 @@ from svg import SVGParser
 
 
 def testFileImport():
-    raise
-
-
-def testFromString():
     f = SVGParser(filename="tests/import-export/test.svg", debug=True)
     # TODO: asserts...
     raise
 
 
-def testSerialization():
+def testFromString():
+    # TODO
     raise
+
+
+def testSerialization():
+    f = SVGParser(filename="tests/import-export/test.svg", debug=True)
+    s = str(f)
+    print(s)
+    #e = Exception()
+    raise RuntimeError()
 
 
 def testFileExport():

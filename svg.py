@@ -67,6 +67,18 @@ class SVGParser(xml.sax.ContentHandler):
             print("Parser found {:d} paths.".format(len(self.paths)))
 
     #
+    # Save to file
+    #
+    def save(self, filename):
+        svg = str(self)
+        f = open(filename, "w")
+        f.write(svg)
+        f.close()
+
+    def __str__(self):
+        return str(self.elementTree)
+
+    #
     # XML parser callback: an element starts
     #
     def startElement(self, tag, attributes):
