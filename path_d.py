@@ -47,8 +47,6 @@ sQS = begin + whitespace + "([qQsS]{1})" + (whitespace + sNumeric)*4 + end
 #  t dx dy
 sMLT = begin + whitespace + "([mMlLtT]{1})" + (whitespace + sNumeric)*2 + end
 
-sImplicitRepetition = begin + whitespace + (whitespace + sNumeric)*2 + end
-
 # Horizontal line:
 #  H x
 #  h dx
@@ -62,7 +60,7 @@ sHV = begin + whitespace + "([hHvV]{1})" + (whitespace + sNumeric) + end
 #  z
 sZ = begin + whitespace + "([zZ]{1})" + end
 
-sSVGPathCommand = "|".join([sA,sC,sQS,sMLT,sHV,sZ,sImplicitRepetition])
+sSVGPathCommand = "|".join([sA,sC,sQS,sMLT,sHV,sZ])
 #print(sSVGPathCommand)
 rSVGPathCommand = re.compile(sSVGPathCommand)
 #print(rSVGPathCommand)
@@ -71,6 +69,10 @@ rSVGPathCommand = re.compile(sSVGPathCommand)
 svgPathDCommandCharsLower = "mlvhcqstaz"
 svgPathDCommandCharsUpper = "MLVHCQSTAZ"
 svgPathDCommandChars = svgPathDCommandCharsLower + svgPathDCommandCharsUpper
+
+# Command chars can be omitted indicating repetition of the previous command with new values
+sBeginsWithCommandChar = "^" + whitespace + "([" + svgPathDCommandChars + "]{1})" + whitespace
+rSVGPathCommandChar = re.compile(sBeginsWithCommandChar)
 
 
 #
@@ -93,9 +95,9 @@ class SVGPathCommand:
         command = list(command)
 
         # Strip empty array elements at beginning and end of the list
-        while (len(command) > 0) and (command[0] == ""):
+        while (len(command) > 0) and ((command[0] is None) or (command[0] == "")):
             command.pop(0)
-        while (len(command) > 0) and (command[len(command)-1] == ""):
+        while (len(command) > 0) and ((command[len(command)-1] is None) or (command[len(command)-1] == "")):
             command.pop(len(command)-1)
         assert len(command) >= 1
 
@@ -248,28 +250,22 @@ class SVGPathDefinition:
         self.path = path
         self.debug = debug
 
-        # initialize empty
+        # Initialize empty
+        self.d = d
         self.commands = []
         if d is None:
             return
 
-        #print(rSVGPathCommand.match(s).groups())
-        results = rSVGPathCommand.findall(d)
+        # Parse input string
         if self.debug:
             print("Parsing path definition: \"{:s}\"".format(d))
-            #print("Intermediate results: {:s}".format(str(results)))
 
-        # Walk along the path
-        cursor = np.array([0.0, 0.0])
-        if self.debug:
-            print("Startpoint: "+str(cursor))
-        cmd = None
-        for match in results:
-            cmd = SVGPathCommand(command=match, startpoint=cursor, previousCommand=cmd, debug=self.debug)
-            self.commands.append(cmd)
-            cursor = cmd.getEndpoint()
+        for idx, (s, cmd) in enumerate(self):
             if self.debug:
-                print("Next point: "+str(cursor))
+                a = str(cmd.getStartpoint())
+                b = str(cmd.getEndpoint())
+                r = str(cmd)
+                print("{:3d}: \"{:s}\" -> \"{:s}\", from {:s} to {:s}".format(idx, s, r, a, b))
 
         self.updatePoints()
 
@@ -282,6 +278,50 @@ class SVGPathDefinition:
 
         if self.debug:
             print("Results: {:s}".format(str([str(command) for command in self.commands])))
+
+    #
+    # Path definition string tokenizer
+    #
+    def __iter__(self):
+        self.commands = []
+        self.previousCommand = None
+        self.cursor = np.array([0.0, 0.0])
+        return self
+
+    #
+    # Tokenize one command after the other
+    #
+    def __next__(self):
+        self.d = self.d.strip()
+        if len(self.d) == 0:
+            raise StopIteration
+
+        # Explicitly insert repeated command char
+        m = rSVGPathCommandChar.match(self.d)
+        if self.debug:
+            print("Remains to be tokenized: " + self.d)
+            print(str(m))
+        repeat = True if (m is None) else False
+        if self.debug:
+            print("Repetition: {:s}".format("Yes" if repeat else "No"))
+        if repeat:
+            self.d = self.previousCommand.getCommandChar() + " " + self.d
+
+        # Parse remaining string
+        match = rSVGPathCommand.search(self.d)
+        if match is None:
+            print("Error: Syntax error in path definition.")
+            raise StopIteration
+        cmd = SVGPathCommand(command=match.groups(), startpoint=self.cursor, previousCommand=self.previousCommand, debug=self.debug)
+
+        # Store yielded command and move on to the next
+        self.commands.append(cmd)
+        self.previousCommand = cmd
+        self.cursor = cmd.getEndpoint()
+        span = match.span()
+        s = self.d[span[0]:span[1]]
+        self.d = self.d[span[1]:]
+        return (s, cmd)
 
     #
     # Whenever the path definition is altered,
@@ -315,6 +355,9 @@ class SVGPathDefinition:
     def __len__(self):
         return len(self.commands)
 
+    #
+    # Stringify the path definition
+    #
     def __str__(self):
         return " ".join([str(command) for command in self.commands])
 
@@ -359,8 +402,8 @@ class SVGPathDefinition:
         if inplace:
             d = self
         else:
-            # TODO: You can't do this. Object references will be incorrect.
-            #d = deepcopy(self)
+            # TODO: Will object references be correct?
+            d = deepcopy(self)
         for cmd in d.getCommands():
             cmd.transform(matrix, inplace=inplace)
         self.updatePoints()
