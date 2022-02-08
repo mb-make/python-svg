@@ -4,7 +4,7 @@
 # especially SVGs exported from OpenSCAD
 #
 
-import sys
+import sys, os
 import xml.sax
 from element import SVGElement
 from path import SVGPath
@@ -25,12 +25,14 @@ class SVGParser(xml.sax.ContentHandler):
         "g"
         ]
 
-    def __init__(self, filename=None, debug=False):
+    def __init__(self, filename=None, fromString=None, debug=False):
         self.debug = debug
-        if filename is None:
-            self.clear()
-        else:
-            self.load(filename)
+        self.clear()
+        if not (filename is None):
+            self.fromFile(filename)
+            return
+        if not (fromString is None):
+            self.fromString(fromString)
 
     #
     # Reset object, delete all stored information
@@ -42,7 +44,7 @@ class SVGParser(xml.sax.ContentHandler):
         # The list of parents at the momentary position during parsing
         self.currentParents = []
         # The tree of parsed elements
-        self.elementTree = SVGElement()
+        self.elementTree = SVGElement(tag="document")
         # A flattened list of all parsed elements
         self.elementList = []
         # A list of all the paths inside the SVG for convenient access
@@ -51,7 +53,7 @@ class SVGParser(xml.sax.ContentHandler):
     #
     # Load SVG from file
     #
-    def load(self, filename):
+    def fromFile(self, filename):
         self.clear()
 
         # create an XMLReader
@@ -69,14 +71,28 @@ class SVGParser(xml.sax.ContentHandler):
     #
     # Save to file
     #
-    def save(self, filename):
-        svg = str(self)
+    def toFile(self, filename):
         f = open(filename, "w")
-        f.write(svg)
+        f.write(str(self))
         f.close()
 
+    #
+    # Load SVG from string
+    #
+    def fromString(self, s):
+        # TODO: Workaround by writing to a file and loading it
+        filename = ".svg.tmp"
+        f = open(filename, "w")
+        f.write(s)
+        f.close()
+        self.fromFile(filename)
+        os.remove(filename)
+
+    #
+    # Stringify the element tree
+    #
     def __str__(self):
-        return str(self.elementTree)
+        return "".join([str(e) for e in self.elementTree.getChildren()])
 
     #
     # XML parser callback: an element starts
@@ -135,7 +151,7 @@ class SVGParser(xml.sax.ContentHandler):
         return
 
     def getSVG(self):
-        return self.elementTree
+        return self.elementTree.getChild(0)
 
     def getElementList(self):
         return self.elementList
