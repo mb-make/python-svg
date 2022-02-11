@@ -4,6 +4,7 @@ import sys, os
 sys.path.append("..")
 from svg import SVGParser
 from element import SVGElement
+from path import SVGPath
 
 
 def testFileImport():
@@ -25,7 +26,6 @@ def testFromString():
 
 
 def testSerialization():
-    filename = "tests/import-export/test.svg"
     sIn = "<svg><rect/></svg>"
     f = SVGParser(fromString=sIn)
     sOut = str(f)
@@ -49,6 +49,14 @@ def testFileExport():
 
     # Compare
     assert(sIn == sOut)
+
+
+def testGetElementById():
+    filename = "tests/import-export/test.svg"
+    f = SVGParser(filename=filename, debug=True)
+    assert(f.getElementById("test") is None)
+    assert(f.getElementById("path15-3") != None)
+    assert(type(f.getElementById("path15-3")) == SVGPath)
 
 
 if __name__ == "__main__":

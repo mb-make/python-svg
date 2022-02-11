@@ -66,6 +66,24 @@ class SVGElement():
     def getChildren(self):
         return self.children
 
+    def getChild(self, index):
+        return self.children[index]
+
+    #
+    # Find the element with the specified ID
+    #
+    def getElementById(self, id, depth=0):
+        if depth > 100:
+            print("Error: Reached maximum recursion depth looking for element by ID.")
+            return None
+        if ((self.getAttribute("id") or "") == id):
+            return self
+        for child in self.getChildren():
+            e = child.getElementById(id, depth+1)
+            if (e != None):
+                return e
+        return None
+
     def __str__(self):
         s = "<{:s}".format(self.tag)
         for key in self.attributes.keys():

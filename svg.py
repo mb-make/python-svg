@@ -158,3 +158,6 @@ class SVGParser(xml.sax.ContentHandler):
 
     def getPaths(self):
         return self.paths
+
+    def getElementById(self, id):
+        return self.elementTree.getElementById(id)
