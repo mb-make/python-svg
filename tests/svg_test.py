@@ -55,8 +55,34 @@ def testGetElementById():
     filename = "tests/import-export/test.svg"
     f = SVGParser(filename=filename, debug=True)
     assert(f.getElementById("test") is None)
+    assert(f.getElementById("svg2") != None)
+    assert(f.getElementById("namedview7") != None)
     assert(f.getElementById("path15-3") != None)
     assert(type(f.getElementById("path15-3")) == SVGPath)
+
+
+def testGetElementsByClassName():
+    filename = "tests/import-export/test.svg"
+    f = SVGParser(filename=filename, debug=True)
+    assert(len(f.getElementsByName("test")) == 0)
+    assert(len(f.getElementsByName("svg")) == 1)
+    assert(len(f.getElementsByName("path")) == 1)
+
+
+def testGetElementsByName():
+    filename = "tests/import-export/test.svg"
+    f = SVGParser(filename=filename, debug=True)
+    assert(len(f.getElementsByName("test")) == 0)
+    assert(len(f.getElementsByName("svg")) == 1)
+    assert(len(f.getElementsByName("path")) == 1)
+
+
+def testGetElementsByTagName():
+    filename = "tests/import-export/test.svg"
+    f = SVGParser(filename=filename, debug=True)
+    assert(len(f.getElementsByTagName("test")) == 0)
+    assert(len(f.getElementsByTagName("svg")) == 1)
+    assert(len(f.getElementsByTagName("path")) == 1)
 
 
 if __name__ == "__main__":

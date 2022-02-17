@@ -1,6 +1,5 @@
 
-import os, sys
+import sys
+from os import dirname, realpath
 
-pathFile = os.path.dirname(__file__)
-pathLib = os.path.join(pathFile)
-sys.path.append(pathLib)
+sys.path.append(realpath(dirname(__file__)))

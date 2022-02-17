@@ -161,3 +161,12 @@ class SVGParser(xml.sax.ContentHandler):
 
     def getElementById(self, id):
         return self.elementTree.getElementById(id)
+
+    def getElementsByClassName(self, c):
+        return self.elementTree.getElementsByClassName(c)
+
+    def getElementsByName(self, name):
+        return self.elementTree.getElementsByName(name)
+
+    def getElementsByTagName(self, tag):
+        return self.elementTree.getElementsByTagName(tag)

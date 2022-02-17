@@ -85,6 +85,33 @@ class SVGElement():
                 return e
         return None
 
+    #
+    # Return an array of elements with the given class
+    # See also: https://www.w3schools.com/jsref/met_document_getelementsbyclassname.asp
+    #
+    def getElementsByClassName(self, c):
+        # TODO
+        return []
+
+    #
+    # Return an array of elements with the given name
+    # See also: https://www.w3schools.com/jsref/met_doc_getelementsbyname.asp
+    #
+    def getElementsByName(self, name):
+        # TODO
+        return []
+
+    #
+    # Return an array of elements with the given tag name
+    # See also: https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp
+    #
+    def getElementsByTagName(self, tag):
+        # TODO
+        return []
+
+    #
+    # Stringify element
+    #
     def __str__(self):
         s = "<{:s}".format(self.tag)
         for key in self.attributes.keys():
