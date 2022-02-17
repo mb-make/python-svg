@@ -71,6 +71,7 @@ class SVGElement():
 
     #
     # Find the element with the specified ID
+    # See also: https://www.w3schools.com/jsref/met_document_getelementbyid.asp
     #
     def getElementById(self, id, depth=0):
         if depth > 100:

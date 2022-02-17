@@ -4,8 +4,9 @@ from element import SVGElement
 
 
 #
-# Defines a rectangular box and implements methods
-# to test whether other elements are touched or contained
+# The smallest rectangular box encapsulating a target element
+#
+# Implements methods to test whether other elements are touched or contained.
 #
 class SVGBoundingBox():
     def __init__(self, fromElement=None, minX=None, minY=None, maxX=None, maxY=None):

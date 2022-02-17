@@ -8,6 +8,9 @@ from bbox import SVGBoundingBox
 
 
 class SVGRect(SVGElement, SVGBoundingBox):
+    #
+    # TODO: Add support for transformed element or parents
+    #
     def __init__(self, attributes=[]):
         self.x = attributes["x"] or 0.0
         self.y = attributes["y"] or 0.0
