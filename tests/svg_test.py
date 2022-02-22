@@ -2,14 +2,14 @@
 
 import sys, os
 sys.path.append("..")
-from svg import SVGParser
+from svg import SVGReader
 from element import SVGElement
 from path import SVGPath
 
 
 def testFileImport():
     filename = "tests/import-export/test.svg"
-    f = SVGParser(filename=filename, debug=True)
+    f = SVGReader(filename=filename, debug=True)
     e = f.getSVG()
     assert(not (e is None))
     assert(type(e) is SVGElement)
@@ -18,7 +18,7 @@ def testFileImport():
 
 def testFromString():
     sIn = "<svg><rect/></svg>"
-    p = SVGParser(fromString=sIn)
+    p = SVGReader(fromString=sIn)
     dom = p.getSVG()
     assert(dom.getTag() == "svg")
     assert(len(dom.getChildren()) == 1)
@@ -27,7 +27,7 @@ def testFromString():
 
 def testSerialization():
     sIn = "<svg><rect/></svg>"
-    f = SVGParser(fromString=sIn)
+    f = SVGReader(fromString=sIn)
     sOut = str(f)
     assert(sIn == sOut)
 
@@ -37,7 +37,7 @@ def testFileExport():
     sIn = "<svg><rect/></svg>"
 
     # Write to file
-    p = SVGParser(fromString=sIn)
+    p = SVGReader(fromString=sIn)
     p.toFile(filename)
     del p
 
@@ -53,7 +53,7 @@ def testFileExport():
 
 def testGetElementById():
     filename = "tests/import-export/test.svg"
-    f = SVGParser(filename=filename, debug=True)
+    f = SVGReader(filename=filename, debug=True)
     assert(f.getElementById("test") is None)
     assert(f.getElementById("svg2") != None)
     assert(f.getElementById("namedview7") != None)
@@ -63,7 +63,7 @@ def testGetElementById():
 
 def testGetElementsByClassName():
     filename = "tests/import-export/test.svg"
-    f = SVGParser(filename=filename, debug=True)
+    f = SVGReader(filename=filename, debug=True)
     assert(len(f.getElementsByName("test")) == 0)
     assert(len(f.getElementsByName("svg")) == 1)
     assert(len(f.getElementsByName("path")) == 1)
@@ -71,7 +71,7 @@ def testGetElementsByClassName():
 
 def testGetElementsByName():
     filename = "tests/import-export/test.svg"
-    f = SVGParser(filename=filename, debug=True)
+    f = SVGReader(filename=filename, debug=True)
     assert(len(f.getElementsByName("test")) == 0)
     assert(len(f.getElementsByName("svg")) == 1)
     assert(len(f.getElementsByName("path")) == 1)
@@ -79,7 +79,7 @@ def testGetElementsByName():
 
 def testGetElementsByTagName():
     filename = "tests/import-export/test.svg"
-    f = SVGParser(filename=filename, debug=True)
+    f = SVGReader(filename=filename, debug=True)
     assert(len(f.getElementsByTagName("test")) == 0)
     assert(len(f.getElementsByTagName("svg")) == 1)
     assert(len(f.getElementsByTagName("path")) == 1)

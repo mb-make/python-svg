@@ -14,7 +14,7 @@ from path import SVGPath
 # It is capable of handling parser events and
 # also stores relevant information.
 #
-class SVGParser(xml.sax.ContentHandler):
+class SVGReader(xml.sax.ContentHandler):
     tagsWithChildren = [
         "svg",
         "metadata",

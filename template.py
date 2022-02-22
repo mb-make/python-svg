@@ -26,6 +26,7 @@ class SVGTemplateMatch:
         for e in results[label]:
             if e.getTag().lower() == "text":
                 # TODO
+                pass
         return ""
 
 

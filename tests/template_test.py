@@ -3,7 +3,7 @@
 import sys
 sys.path.append("..")
 from template import SVGTemplate
-from svg import SVGParser
+from svg import SVGReader
 
 
 #
