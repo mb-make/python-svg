@@ -1,5 +1,5 @@
 
 import sys
-from os import dirname, realpath
+from os.path import dirname, realpath
 
 sys.path.append(realpath(dirname(__file__)))
