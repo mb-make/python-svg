@@ -2,3 +2,4 @@ xml
 re
 numpy
 matplotlib
+pypdf4
