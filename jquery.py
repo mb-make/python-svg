@@ -84,13 +84,24 @@ class jQueryFilter:
         return s
 
     def matches(self, element):
-        if (self.matchTag != None) and (element.getTag() != self.matchTag):
-            return False
+        if self.matchTag != None:
+            if element.getTag() == self.matchTag:
+                if self.debug:
+                    print("Element tag name matches ('{:s}')".format(self.matchTag))
+            else:
+                if self.debug:
+                    print("Element tag name mismatch: expected '{:s}', got '{:s}'".format(self.matchTag, element.getTag()))
+                return False
         for key in self.matchAttributes.keys():
             value = self.matchAttributes[key]
             if value is None:
                 continue
-            if (element.getAttribute(key) != value):
+            if element.getAttribute(key) == value:
+                if self.debug:
+                    print("Attribute matches: '{:s}={:s}'".format(key, value))
+            else:
+                if self.debug:
+                    print("Attribute mismatch: expected '{:s}={:s}', got '{:s}={:s}'".format(key, value, key, element.getAttribute(key)))
                 return False
         return True
 
@@ -124,7 +135,7 @@ class jQuerySelector:
             self.filters.append(q)
 
     def __str__(self):
-        return str([str(f) for f in self.filters])
+        return " ".join([str(f) for f in self.filters])
 
     def getFilters(self):
         return self.filters
@@ -143,10 +154,12 @@ class jQuerySelector:
     def find(self, dom):
         if len(self.filters) == 0:
             # Match all elements
-            return dom.getElementList()
+            return [dom, dom.getElementList()]
 
         recurse = True
-        needles = dom
+        needles = [dom]
+        if self.debug:
+            selectorString = str(self)
         for filter in self.filters:
             if filter == ">":
                 # Do not inspect children recursively on the next filter
@@ -156,6 +169,8 @@ class jQuerySelector:
                 haystack = needles
                 needles = []
                 for element in haystack:
+                    if self.debug:
+                        print("Looking for '{:s}' below '<{:s}.../>'...".format(selectorString, element.getTag()))
                     needles += element.find(filter, recurse=recurse)
 
                 # (Re-)Enable recursive search in the next round

@@ -90,13 +90,14 @@ def test_selector_init():
 
 
 def test_selector_matching():
-    svg = XMLElement(tag="svg")
+    dom = XMLElement(tag="svg")
     group = XMLElement(tag="g")
     path = XMLElement(tag="path")
     group.addChild(path)
-    svg.addChild(group)
+    dom.addChild(group)
 
-    assert(len(jQuerySelector("svg > g").find(svg)) == 1)
-    assert(len(jQuerySelector("g > path").find(svg)) == 1)
-    assert(len(jQuerySelector("svg > path").find(svg)) == 0)
-    assert(len(jQuerySelector("svg path").find(svg)) == 1)
+    assert(len(jQuerySelector("svg", debug=True).find(dom)) == 1)
+    assert(len(jQuerySelector("svg > g", debug=True).find(dom)) == 1)
+    assert(len(jQuerySelector("g > path", debug=True).find(dom)) == 1)
+    assert(len(jQuerySelector("svg > path", debug=True).find(dom)) == 0)
+    assert(len(jQuerySelector("svg path", debug=True).find(dom)) == 1)

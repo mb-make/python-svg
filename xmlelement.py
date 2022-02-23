@@ -9,7 +9,7 @@ from jquery import jQuerySelector, jQueryFilter
 class XMLElement:
     def __init__(self, root=None, parent=None, tag="xml", attributes={}, debug=False):
         self.debug = debug
-        self.documentRoot = svg
+        self.documentRoot = root
         self.parentElement = parent
         self.tag = tag
         self.attributes = dict(attributes)
@@ -76,6 +76,9 @@ class XMLElement:
     def getChild(self, index):
         return self.children[index]
 
+    def addChild(self, element):
+        self.children.append(element)
+
     def getElementList(self, recursionDepth=0):
         if recursionDepth > 100:
             raise RecursionError
@@ -118,16 +121,18 @@ class XMLElement:
             raise TypeError
 
         results = []
+        if selector.matches(self):
+            results.append(self)
         if recurse:
             # Look for filter matches recursively
             for idx, element in enumerate(self):
-                if selector.matches(self):
-                    results.append(self)
+                if selector.matches(element):
+                    results.append(element)
         else:
             # Look for filter matches among the immediate child elements
             for element in self.getChildren():
-                if selector.matches(self):
-                    results.append(self)
+                if selector.matches(element):
+                    results.append(element)
         return results
 
     #
