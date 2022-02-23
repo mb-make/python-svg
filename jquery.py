@@ -27,7 +27,7 @@ class jQueryFilter:
 
     def clear(self):
         self.matchTag = None
-        self.matchAttributes = None
+        self.matchAttributes = {}
 
     def compile(self, s):
         matchTag = rTag.match(s)
@@ -39,6 +39,21 @@ class jQueryFilter:
         matchClass = rClass.match(s)
         if matchClass != None:
             self.matchAttributes["class"] = matchClass.group()
+
+    def __str__(self):
+        s = (self.matchTag or "")
+        keys = self.matchAttributes.keys()
+        if "class" in keys:
+            s += "#"+self.matchAttributes["class"]
+            keys.remove("class")
+        if "id" in keys:
+            s += "#"+self.matchAttributes["id"]
+            keys.remove("id")
+        if len(keys) > 0:
+            s += "["
+            s += ",".join(key+"="+self.matchAttributes[key] for key in keys)
+            s += "]"
+        return s
 
     def matches(self, element):
         if (self.matchTag != None) and (element.getTag() != self.matchTag):
@@ -65,13 +80,6 @@ class jQuerySelector:
     def clear(self):
         self.filters = []
 
-    def getFilter(self, index):
-        if type(index) != int:
-            return None
-        if (index < 0) or (index >= len(self.filters)):
-            raise IndexError()
-        return self.filters[index]
-
     #
     # Compile a jQuery selector from a selector string
     #
@@ -85,6 +93,19 @@ class jQuerySelector:
             if q != ">":
                 q = jQueryFilter(filter)
             self.filters.append(q)
+
+    def __str__(self):
+        return str([str(f) for f in self.filters])
+
+    def getFilters(self):
+        return self.filters
+
+    def getFilter(self, index):
+        if type(index) != int:
+            return None
+        if (index < 0) or (index >= len(self.filters)):
+            raise IndexError()
+        return self.filters[index]
 
     #
     # Apply the selector to a DOM (type SVGReader or SVGElement)
