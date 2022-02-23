@@ -9,12 +9,13 @@ import xml.sax
 from element import SVGElement
 from path import SVGPath
 
+
 #
 # The SVG class is a derivative of the XML parser handler class.
 # It is capable of handling parser events and
 # also stores relevant information.
 #
-class SVGReader(xml.sax.ContentHandler):
+class SVGReader(xml.sax.ContentHandler, SVGElement):
     tagsWithChildren = [
         "svg",
         "metadata",
@@ -26,6 +27,7 @@ class SVGReader(xml.sax.ContentHandler):
         ]
 
     def __init__(self, filename=None, fromString=None, debug=False):
+        SVGElement.__init__(self, root=self, parent=None, tag="root", attributes={}, debug=debug)
         self.debug = debug
         self.clear()
         if not (filename is None):
@@ -33,22 +35,6 @@ class SVGReader(xml.sax.ContentHandler):
             return
         if not (fromString is None):
             self.fromString(fromString)
-
-    #
-    # Reset object, delete all stored information
-    #
-    def clear(self):
-        #super.__init__()
-        # Cursor is currently inside how many tags with closing tags:
-        self.descentLevel = 0
-        # The list of parents at the momentary position during parsing
-        self.currentParents = []
-        # The tree of parsed elements
-        self.elementTree = SVGElement(tag="document")
-        # A flattened list of all parsed elements
-        self.elementList = []
-        # A list of all the paths inside the SVG for convenient access
-        self.paths = []
 
     #
     # Load SVG from file
@@ -89,27 +75,32 @@ class SVGReader(xml.sax.ContentHandler):
         os.remove(filename)
 
     #
-    # Stringify the element tree
+    # Reset XML parser
     #
-    def __str__(self):
-        return "".join([str(e) for e in self.elementTree.getChildren()])
+    def clear(self):
+        #super.__init__()
+        # Cursor is currently inside how many tags with closing tags:
+        self.descentLevel = 0
+        # The list of parents at the momentary position during parsing
+        self.currentParents = [self]
 
     #
     # XML parser callback: an element starts
     #
     def startElement(self, tag, attributes):
         # Determine current parent element
-        parent = self.elementTree
-        l = len(self.currentParents)
-        if l > 0:
-            parent = self.currentParents[l-1]
+        lastIndex = len(self.currentParents)-1
+        if lastIndex < 0:
+            raise SyntaxError()
+        parent = self.currentParents[lastIndex]
 
         # Evaluate tag
         tag = tag.lower()
         if tag == "path":
+            # <path .../>
             e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
-            self.paths.append(e)
         elif tag.lower() in self.tagsWithChildren:
+            # Element with children, especially <g>...</g>
             #e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
             self.currentParents.append(e)
@@ -117,9 +108,9 @@ class SVGReader(xml.sax.ContentHandler):
             if self.debug:
                 print("<{:s}>; expecting children; descending to level: {:d}".format(tag, self.descentLevel))
         else:
+            # Generic element without children
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
 
-        self.elementList.append(e)
         parent.children.append(e)
 
     #
@@ -145,28 +136,8 @@ class SVGReader(xml.sax.ContentHandler):
 
     #
     # XML parser callback: tag content is read
+    # not relevant for SVGs
     #
     def characters(self, content):
         #print(content)
         return
-
-    def getSVG(self):
-        return self.elementTree.getChild(0)
-
-    def getElementList(self):
-        return self.elementList
-
-    def getPaths(self):
-        return self.paths
-
-    def getElementById(self, id):
-        return self.elementTree.getElementById(id)
-
-    def getElementsByClassName(self, c):
-        return self.elementTree.getElementsByClassName(c)
-
-    def getElementsByName(self, name):
-        return self.elementTree.getElementsByName(name)
-
-    def getElementsByTagName(self, tag):
-        return self.elementTree.getElementsByTagName(tag)
