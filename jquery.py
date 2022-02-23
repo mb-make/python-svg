@@ -5,10 +5,12 @@
 
 import re
 
-rElement = re.compile("([a-zA-Z0-9\.#\[\'\"=\]]*)[ ]*")
+rElement = re.compile("([a-zA-Z0-9\.\#\[\]\'\"=>]+)[ ]*")
 rTag = re.compile("^([a-zA-Z\-_:]+)")
-rClass = re.compile("(\.[a-zA-Z\-_]+)")
-rId = re.compile("(#[a-zA-Z\-_]+)")
+rClass = re.compile("\.([a-zA-Z]+)")
+rId = re.compile("\#([a-zA-Z]+)")
+rAttrs = re.compile("\[([ a-zA-Z0-9\=\'\"\,]+)\]")
+rKeyValue = re.compile("([a-zA-Z]+)[ ]*\=[ \"\']*([a-zA-Z0-9]+)")
 
 
 #
@@ -16,13 +18,14 @@ rId = re.compile("(#[a-zA-Z\-_]+)")
 # provided in jQuery syntax
 #
 class jQueryFilter:
-    def __init__(self, selector=None, matchTag=None, matchAttributes=None):
+    def __init__(self, selector=None, matchTag=None, matchAttributes=None, debug=False):
+        self.debug = debug
         self.clear()
         if selector != None:
             self.compile(selector)
         if matchTag != None:
             self.matchTag = matchTag
-        if matchTag != None:
+        if matchAttributes != None:
             self.matchAttributes = matchAttributes
 
     def clear(self):
@@ -30,28 +33,53 @@ class jQueryFilter:
         self.matchAttributes = {}
 
     def compile(self, s):
+        if self.debug:
+            print("Compiling jQueryFilter from string: \"{:s}\"".format(s))
         matchTag = rTag.match(s)
+        if self.debug:
+            print("Tag regex match: {:s}".format(str(matchTag)))
         if matchTag != None:
-            self.matchTag = matchTag.group()
-        matchId = rId.match(s)
+            self.matchTag = matchTag.group(0)
+        matchId = rId.search(s)
+        if self.debug:
+            print("Id regex match: {:s}".format(str(matchId)))
         if matchId != None:
-            self.matchAttributes["id"] = matchId.group()
-        matchClass = rClass.match(s)
+            self.matchAttributes["id"] = matchId.group(1)
+        matchClass = rClass.search(s)
+        if self.debug:
+            print("Class regex match: {:s}".format(str(matchClass)))
         if matchClass != None:
-            self.matchAttributes["class"] = matchClass.group()
+            self.matchAttributes["class"] = matchClass.group(1)
+        matchAttrs = rAttrs.search(s)
+        if self.debug:
+            print("Additional attributes regex match: {:s}".format(str(matchAttrs)))
+        if matchAttrs != None:
+            haystack = matchAttrs.group(1)
+            if self.debug:
+                print("Parsing additional attributes: {:s}".format(str(haystack)))
+            attrs = rKeyValue.findall(haystack)
+            if self.debug:
+                print("Found key-value pairs: {:s}".format(str(attrs)))
+            for attr in attrs:
+                value = attr[1]
+                try:
+                    value = int(value)
+                except:
+                    pass
+                self.matchAttributes[attr[0]] = value
 
     def __str__(self):
         s = (self.matchTag or "")
-        keys = self.matchAttributes.keys()
+        keys = list(self.matchAttributes.keys())
         if "class" in keys:
-            s += "#"+self.matchAttributes["class"]
+            s += "."+self.matchAttributes["class"]
             keys.remove("class")
         if "id" in keys:
             s += "#"+self.matchAttributes["id"]
             keys.remove("id")
         if len(keys) > 0:
             s += "["
-            s += ",".join(key+"="+self.matchAttributes[key] for key in keys)
+            s += ",".join(key+"="+(str(self.matchAttributes[key]) if type(self.matchAttributes[key]) is int else "\"{:s}\"".format(self.matchAttributes[key])) for key in keys)
             s += "]"
         return s
 
@@ -72,7 +100,8 @@ class jQueryFilter:
 # provided in jQuery syntax
 #
 class jQuerySelector:
-    def __init__(self, selector=None):
+    def __init__(self, selector=None, debug=False):
+        self.debug = debug
         self.clear()
         if selector != None:
             self.compile(selector)
@@ -91,7 +120,7 @@ class jQuerySelector:
         for filter in filters:
             q = filter
             if q != ">":
-                q = jQueryFilter(filter)
+                q = jQueryFilter(filter, debug=self.debug)
             self.filters.append(q)
 
     def __str__(self):
@@ -127,7 +156,7 @@ class jQuerySelector:
                 haystack = needles
                 needles = []
                 for element in haystack:
-                    needles.append(element.find(filter, recurse=recurse))
+                    needles += element.find(filter, recurse=recurse)
 
                 # (Re-)Enable recursive search in the next round
                 recurse = True
