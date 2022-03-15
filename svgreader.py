@@ -27,7 +27,7 @@ class SVGReader(xml.sax.ContentHandler, SVGElement):
         ]
 
     def __init__(self, filename=None, fromString=None, debug=False):
-        SVGElement.__init__(self, root=self, parent=None, tag="root", attributes={}, debug=debug)
+        SVGElement.__init__(self, svg=self, parent=None, tag="root", attributes={}, debug=debug)
         self.debug = debug
         self.clear()
         if not (filename is None):
@@ -50,9 +50,6 @@ class SVGReader(xml.sax.ContentHandler, SVGElement):
         # override the default ContextHandler
         parser.setContentHandler(self)
         parser.parse(filename)
-
-        if self.debug:
-            print("Parser found {:d} paths.".format(len(self.paths)))
 
     #
     # Save to file
@@ -99,7 +96,7 @@ class SVGReader(xml.sax.ContentHandler, SVGElement):
         if tag == "path":
             # <path .../>
             e = SVGPath(svg=self, parent=parent, attributes=attributes, debug=self.debug)
-        elif tag.lower() in self.tagsWithChildren:
+        elif tag in self.tagsWithChildren:
             # Element with children, especially <g>...</g>
             #e = SVGGroup(svg=self, parent=parent, attributes=attributes, debug=self.debug)
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)

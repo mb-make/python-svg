@@ -1,5 +1,9 @@
 #!/bin/bash
 
+test="pytest -vv --color=yes"
+
+$test
+
 while [ 1 ]; do
-  inotifywait $(find . -type f -name "*.py") -e MODIFY && pytest -vv --color=yes
+  inotifywait $(find . -maxdepth 4 -type f) -e MODIFY && $test
 done

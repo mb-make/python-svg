@@ -2,37 +2,40 @@
 
 import sys, os
 sys.path.append("..")
-from svg import SVGReader
+from svgreader import SVGReader
 from element import SVGElement
 from path import SVGPath
 
 
-def testFileImport():
+def test_file_import():
     filename = "tests/import-export/test.svg"
-    f = SVGReader(filename=filename, debug=True)
-    e = f.getSVG()
-    assert(not (e is None))
-    assert(type(e) is SVGElement)
-    assert(e.getTag().lower() == "svg")
+    dom = SVGReader(filename=filename, debug=True)
+    print(str(dom.__dict__))
+    assert(not (dom is None))
+    assert(dom.getChild(0).getTag() == "svg")
+    assert(len(dom.find("svg")) == 1)
+    assert(len(dom.find("path")) == 1)
+    assert(len(dom.find("rect")) == 0)
 
 
-def testFromString():
+def test_string_import():
     sIn = "<svg><rect/></svg>"
-    p = SVGReader(fromString=sIn)
-    dom = p.getSVG()
-    assert(dom.getTag() == "svg")
+    dom = SVGReader(fromString=sIn, debug=True)
     assert(len(dom.getChildren()) == 1)
-    assert(dom.getChild(0).getTag() == "rect")
+    assert(dom.getChild(0).getTag() == "svg")
+    assert(len(dom.find("svg")) == 1)
+    assert(len(dom.find("path")) == 0)
+    assert(len(dom.find("rect")) == 1)
 
 
-def testSerialization():
+def test_string_export():
     sIn = "<svg><rect/></svg>"
-    f = SVGReader(fromString=sIn)
-    sOut = str(f)
+    dom = SVGReader(fromString=sIn)
+    sOut = str(dom)
     assert(sIn == sOut)
 
 
-def testFileExport():
+def test_file_export():
     filename = "test.svg.tmp"
     sIn = "<svg><rect/></svg>"
 
@@ -49,44 +52,3 @@ def testFileExport():
 
     # Compare
     assert(sIn == sOut)
-
-
-def testGetElementById():
-    filename = "tests/import-export/test.svg"
-    f = SVGReader(filename=filename, debug=True)
-    assert(f.getElementById("test") is None)
-    assert(f.getElementById("svg2") != None)
-    assert(f.getElementById("namedview7") != None)
-    assert(f.getElementById("path15-3") != None)
-    assert(type(f.getElementById("path15-3")) == SVGPath)
-
-
-def testGetElementsByClassName():
-    filename = "tests/import-export/test.svg"
-    f = SVGReader(filename=filename, debug=True)
-    assert(len(f.getElementsByName("test")) == 0)
-    assert(len(f.getElementsByName("svg")) == 1)
-    assert(len(f.getElementsByName("path")) == 1)
-
-
-def testGetElementsByName():
-    filename = "tests/import-export/test.svg"
-    f = SVGReader(filename=filename, debug=True)
-    assert(len(f.getElementsByName("test")) == 0)
-    assert(len(f.getElementsByName("svg")) == 1)
-    assert(len(f.getElementsByName("path")) == 1)
-
-
-def testGetElementsByTagName():
-    filename = "tests/import-export/test.svg"
-    f = SVGReader(filename=filename, debug=True)
-    assert(len(f.getElementsByTagName("test")) == 0)
-    assert(len(f.getElementsByTagName("svg")) == 1)
-    assert(len(f.getElementsByTagName("path")) == 1)
-
-
-if __name__ == "__main__":
-    testFileImport()
-    testFromString()
-    testSerialization()
-    testFileExport()

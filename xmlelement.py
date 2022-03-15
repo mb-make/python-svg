@@ -15,7 +15,21 @@ class XMLElement:
         self.attributes = dict(attributes)
         self.children = []
 
+    def isRootNode(self):
+        # if self.parentElement is None:
+        #     return True
+        if self.documentRoot == self:
+            return True
+        return False
+
     def __str__(self):
+        if self.isRootNode():
+            # Omit the root node on export, only list the children
+            s = ""
+            for child in self.children:
+                s += str(child)
+            return s
+
         s = "<{:s}".format(self.tag)
         for key in self.attributes.keys():
             s += " {:s}=".format(key)

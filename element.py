@@ -26,8 +26,8 @@ class SVGElement(XMLElement):
     # An element is initialized by setting the XML tag name and attributes.
     # Additionally the containing SVG is referenced.
     #
-    def __init__(self, root=None, parent=None, tag="element", attributes={}, debug=False):
-        XMLElement.__init__(self, root, parent, tag, attributes, debug)
+    def __init__(self, svg=None, parent=None, tag="element", attributes={}, debug=False):
+        XMLElement.__init__(self, svg, parent, tag, attributes, debug)
         # Increase speed: only parse if necessary
         #self.parseTransform()
         self.parsedTransform = None
