@@ -4,8 +4,8 @@ from os.path import dirname, realpath, join
 import sys
 sys.path.append(realpath(join(dirname(__file__), "..")))
 
-from pdf import PDFReader
-from svg import SVGReader
+from pdfreader import PDFReader
+from svgreader import SVGReader
 
 
 def test_init():
