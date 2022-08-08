@@ -12,7 +12,7 @@ class SVGRect(SVGElement, SVGBoundingBox):
     # TODO: Add support for transformed element or parents
     #
     def __init__(self, svg=None, parent=None, attributes={}, debug=False):
-        SVGElement.__init__(self, svg=svg, parent=parent, tag="path", attributes=attributes, debug=debug)
+        SVGElement.__init__(self, svg=svg, parent=parent, tag="rect", attributes=attributes, debug=debug)
 
         self.x = float(attributes["x"] or 0.0)
         self.y = float(attributes["y"] or 0.0)
