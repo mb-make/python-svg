@@ -39,22 +39,26 @@ class SVGTemplateMatch:
 class SVGTemplate(SVGReader):
     def __init__(self, filename=None, debug=False):
         SVGReader.__init__(self, filename, debug)
+        self.selectorElements = None
 
     #
     # Find all selector elements in the loaded SVG
     #
     def getSelectorElements(self):
-        results = {}
-        key = "inkscape:label"
-        for e in self.getElementList():
-            if key in e.getAttributes().keys():
-                label = e.getAttributes(key)
-                tp = type(e)
-                if tp == SVGRect:
-                    results[label] = e
-                else:
-                    print("Warning: Skipping {:s}. Only rectangles are supported as selectors.".format(tp))
-        return results
+        if self.selectorElements is None:
+            self.selectorElements = {}
+            key = "id"
+            for e in self.getElementList():
+                if key in e.getAttributes().keys():
+                    label = e.getAttribute(key)
+                    tp = type(e)
+
+                    # For the time being, only rectangles are supported as selector elements.
+                    if tp == SVGRect:
+                        self.selectorElements[label] = e
+                        if self.debug:
+                            print("Found selector <rect {:s}=\"{:s}\".../>".format(key, label))
+        return self.selectorElements
 
     #
     # Apply this template to a target SVG and
