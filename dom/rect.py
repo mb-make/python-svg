@@ -14,10 +14,25 @@ class SVGRect(SVGElement, SVGBoundingBox):
     def __init__(self, svg=None, parent=None, attributes={}, debug=False):
         SVGElement.__init__(self, svg=svg, parent=parent, tag="rect", attributes=attributes, debug=debug)
 
-        self.x = float(attributes["x"] or 0.0)
-        self.y = float(attributes["y"] or 0.0)
-        self.width = float(attributes["width"] or 0.0)
-        self.height = float(attributes["height"] or 0.0)
+        x = 0.0
+        if "x" in attributes.keys():
+            x = attributes["x"]
+        self.x = float(x)
+
+        y = 0.0
+        if "y" in attributes.keys():
+            y = attributes["y"]
+        self.y = float(y)
+
+        width = 0.0
+        if "width" in attributes.keys():
+            width = attributes["width"]
+        self.width = float(width)
+
+        height = 0.0
+        if "height" in attributes.keys():
+            height = attributes["height"]
+        self.height = float(height)
 
         # Width and height shall not be negative
         if self.width < 0.0:
