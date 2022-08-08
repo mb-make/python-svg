@@ -55,14 +55,12 @@ class SVGTemplate(SVGReader):
                 if label is None:
                     continue
                 t = type(e)
-                if self.debug:
-                    print("Inspecting possible selector: tag={:s}, {:s}={:s}".format(str(t), key, label))
 
                 # For the time being, only rectangles are supported as selector elements.
                 if t == SVGRect:
                     self.selectorElements[label] = e
                     if self.debug:
-                        print("Found selector <rect {:s}=\"{:s}\".../>".format(key, label))
+                        print("Found selector: {:s}, {:s}=\"{:s}\"".format(str(t), key, label))
         return self.selectorElements
 
     #

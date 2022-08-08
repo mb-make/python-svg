@@ -54,4 +54,9 @@ def test_template_application():
     results = template.apply(target)
     assert(results != None)
     print(results)
-    # TODO: evaluate
+
+    print("Evaluating results...")
+    assert(len(results.keys()) == 4)
+    for key in results.keys():
+        print("Key: {:s}".format(key))
+        assert(len(results[key]) == 1)
