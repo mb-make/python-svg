@@ -9,6 +9,7 @@ import xml.sax
 
 from ..dom.element import SVGElement
 from ..dom.path import SVGPath
+from ..dom.rect import SVGRect
 
 
 #
@@ -105,6 +106,9 @@ class SVGReader(xml.sax.ContentHandler, SVGElement):
             self.descentLevel += 1
             if self.debug:
                 print("<{:s}>; expecting children; descending to level: {:d}".format(tag, self.descentLevel))
+        elif tag == "rect":
+            # <rect .../>
+            e = SVGRect(svg=self, parent=parent, attributes=attributes, debug=self.debug)
         else:
             # Generic element without children
             e = SVGElement(svg=self, parent=parent, tag=tag, attributes=attributes, debug=self.debug)
