@@ -47,17 +47,20 @@ class SVGTemplate(SVGReader):
     def getSelectorElements(self):
         if self.selectorElements is None:
             self.selectorElements = {}
+            tag = "rect"
             key = "id"
             for e in self.getElementList():
-                if key in e.getAttributes().keys():
-                    label = e.getAttribute(key)
-                    tp = type(e)
+                label = e.getAttribute(key)
+                if label is None:
+                    continue
+                t = type(e)
+                print("Inspecting possible selector: tag={:s}, {:s}={:s}".format(str(t), key, label))
 
-                    # For the time being, only rectangles are supported as selector elements.
-                    if tp == SVGRect:
-                        self.selectorElements[label] = e
-                        if self.debug:
-                            print("Found selector <rect {:s}=\"{:s}\".../>".format(key, label))
+                # For the time being, only rectangles are supported as selector elements.
+                if t == SVGRect:
+                    self.selectorElements[label] = e
+                    if self.debug:
+                        print("Found selector <rect {:s}=\"{:s}\".../>".format(key, label))
         return self.selectorElements
 
     #
