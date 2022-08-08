@@ -38,7 +38,8 @@ class SVGTemplateMatch:
 #
 class SVGTemplate(SVGReader):
     def __init__(self, filename=None, debug=False):
-        SVGReader.__init__(self, filename, debug)
+        SVGReader.__init__(self, filename, False)
+        self.debug = debug
         self.selectorElements = None
 
     #
@@ -54,7 +55,8 @@ class SVGTemplate(SVGReader):
                 if label is None:
                     continue
                 t = type(e)
-                print("Inspecting possible selector: tag={:s}, {:s}={:s}".format(str(t), key, label))
+                if self.debug:
+                    print("Inspecting possible selector: tag={:s}, {:s}={:s}".format(str(t), key, label))
 
                 # For the time being, only rectangles are supported as selector elements.
                 if t == SVGRect:
@@ -86,6 +88,10 @@ class SVGTemplate(SVGReader):
                             selectorElement=bbox
                             )
             for e in targetSVG.getElementList():
-                if bbox.contains(e):
+                try:
+                    c = bbox.containsElement(e)
+                except:
+                    continue
+                if c:
                     results[q].append(result)
         return results

@@ -40,7 +40,7 @@ def test_template_loading():
 def test_template_application():
     # Load template
     print("Loading template...")
-    template = SVGTemplate(filename=fn_template, debug=False)
+    template = SVGTemplate(filename=fn_template, debug=True)
     selectors = template.getSelectorElements()
     assert(len(selectors) == 4)
     print("Got {:d} selectors".format(len(selectors)))
