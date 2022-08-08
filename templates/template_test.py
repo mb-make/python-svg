@@ -1,7 +1,14 @@
 #!/usr/bin/python3
 
+import os
+
 from .template import SVGTemplate
 from ..io.svgreader import SVGReader
+
+
+here = os.path.realpath(os.path.dirname(__file__))
+fn_target = os.path.join(here, "test_target.svg")
+fn_template = os.path.join(here, "test_template.svg")
 
 
 #
@@ -10,12 +17,12 @@ from ..io.svgreader import SVGReader
 if __name__ == "__main__":
     # Load template
     print("Loading template...")
-    template = SVGTemplate(filename="template-application/template.svg", debug=True)
+    template = SVGTemplate(filename=fn_template, debug=True)
     print(template)
 
     # Load target
     print("Loading target SVG...")
-    target = SVGParser(filename="template-application/target.svg", debug=True)
+    target = SVGParser(filename=fn_target, debug=True)
     print(target)
 
     # Apply template

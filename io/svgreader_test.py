@@ -7,9 +7,12 @@ from ..dom.element import SVGElement
 from ..dom.path import SVGPath
 
 
+here = os.path.realpath(os.path.dirname(__file__))
+testfile = os.path.join(here, "test.svg")
+
+
 def test_file_import():
-    filename = "tests/import-export/test.svg"
-    dom = SVGReader(filename=filename, debug=True)
+    dom = SVGReader(filename=testfile, debug=True)
     print(str(dom.__dict__))
     assert(not (dom is None))
     assert(dom.getChild(0).getTag() == "svg")

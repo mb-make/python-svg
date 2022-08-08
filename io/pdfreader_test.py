@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 from ..io.pdfreader import PDFReader
-from ..io.svgreader import SVGReader
 
 
 def test_init():
