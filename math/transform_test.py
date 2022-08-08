@@ -148,11 +148,9 @@ def testApplySequenceToMatrix():
     assertApplyToMatrix(transform, mOriginal, mTransformed)
 
 
-def testPathApplyTransform():
-    raise
+# def testPathApplyTransform():
+#     raise
 
 
-def testGroupApplyTransform():
-    raise
-
-
+# def testGroupApplyTransform():
+#     raise

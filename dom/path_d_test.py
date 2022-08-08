@@ -72,5 +72,5 @@ def testTransformation():
     assert(not (False in (d.getCommand(1).getEndpoint()   == [4, 6])))
 
 
-def testSplitting():
-    raise
+# def testSplitting():
+    # raise
