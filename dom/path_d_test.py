@@ -74,9 +74,3 @@ def testTransformation():
 
 def testSplitting():
     raise
-
-
-if __name__ == "__main__":
-    testParsing()
-    testSerialization()
-    testSplitting()

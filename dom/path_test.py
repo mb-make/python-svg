@@ -65,10 +65,3 @@ def testSplitting():
 def testInPlaceSplitting():
     # TODO
     raise
-
-
-if __name__ == "__main__":
-    testParsing()
-    testSerialization()
-    testSplitting()
-    testInPlaceSplitting()
