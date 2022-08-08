@@ -6,8 +6,9 @@
 
 import sys, os
 import xml.sax
-from element import SVGElement
-from path import SVGPath
+
+from ..dom.element import SVGElement
+from ..dom.path import SVGPath
 
 
 #

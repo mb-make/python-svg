@@ -1,10 +1,6 @@
 #!/usr/bin/python3
 
-from os.path import dirname, realpath, join
-import sys
-sys.path.append(realpath(join(dirname(__file__), "..")))
-
-from xmlelement import XMLElement
+from .xmlelement import XMLElement
 
 
 #

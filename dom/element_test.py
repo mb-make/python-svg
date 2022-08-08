@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-import sys
-sys.path.append("..")
-from element import SVGElement
+from .element import SVGElement
 
 
 def testParsing():

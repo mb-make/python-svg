@@ -4,11 +4,12 @@
 # exported from OpenSCAD
 #
 
-from element import SVGElement
-from path_d import SVGPathDefinition
-from bbox import SVGBoundingBox
 import sys
 import numpy as np
+
+from .element import SVGElement
+from .path_d import SVGPathDefinition
+from ..selecting.bbox import SVGBoundingBox
 
 
 #

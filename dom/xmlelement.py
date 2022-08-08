@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from jquery import jQuerySelector, jQueryFilter
+from ..selecting.jquery import jQuerySelector, jQueryFilter
 
 
 #

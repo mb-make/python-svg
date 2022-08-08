@@ -1,11 +1,7 @@
 #!/usr/bin/python3
 
-from os.path import dirname, realpath, join
-import sys
-sys.path.append(realpath(join(dirname(__file__), "..")))
-
-from jquery import *
-from xmlelement import XMLElement
+from .jquery import *
+from ..dom.xmlelement import XMLElement
 
 
 def test_regular_expressions():

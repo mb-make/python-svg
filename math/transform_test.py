@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 
-import sys
-sys.path.append("..")
-from transform import SVGTransformList, SVGTransformTranslate, SVGTransformRotate, SVGTransformMatrix
 import numpy as np
+
+from .transform import SVGTransformList, SVGTransformTranslate, SVGTransformRotate, SVGTransformMatrix
 
 
 def assertTransformation(transform, numTransformations, expectedMatrix):

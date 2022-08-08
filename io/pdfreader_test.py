@@ -1,11 +1,7 @@
 #!/usr/bin/python3
 
-from os.path import dirname, realpath, join
-import sys
-sys.path.append(realpath(join(dirname(__file__), "..")))
-
-from pdfreader import PDFReader
-from svgreader import SVGReader
+from ..io.pdfreader import PDFReader
+from ..io.svgreader import SVGReader
 
 
 def test_init():

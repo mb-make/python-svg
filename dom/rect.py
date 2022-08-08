@@ -3,8 +3,8 @@
 # SVG rectangles
 #
 
-from element import SVGElement
-from bbox import SVGBoundingBox
+from .element import SVGElement
+from ..selecting.bbox import SVGBoundingBox
 
 
 class SVGRect(SVGElement, SVGBoundingBox):

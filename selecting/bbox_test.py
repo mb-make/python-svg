@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-import sys
-sys.path.append("..")
-from bbox import SVGBoundingBox
+from ..selecting.bbox import SVGBoundingBox
 
 
 def testFromElement():

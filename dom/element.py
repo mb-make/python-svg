@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from transform import SVGTransformList, SVGMatrix
-from xmlelement import XMLElement
+from ..math.transform import SVGTransformList, SVGMatrix
+from .xmlelement import XMLElement
 
 
 #

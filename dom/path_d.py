@@ -5,9 +5,10 @@
 #
 
 import re
-from transform import sNumeric
 import numpy as np
 from copy import deepcopy
+
+from ..math.transform import sNumeric
 
 
 #

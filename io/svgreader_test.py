@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 
-import sys, os
-sys.path.append("..")
-from svgreader import SVGReader
-from element import SVGElement
-from path import SVGPath
+from ..io.svgreader import SVGReader
+from ..dom.element import SVGElement
+from ..dom.path import SVGPath
 
 
 def test_file_import():

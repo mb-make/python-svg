@@ -1,10 +1,8 @@
 #!/usr/bin/python
 
-import sys
-sys.path.append("..")
-from path import SVGPath
-from path_d import SVGPathDefinition
-from bbox import SVGBoundingBox
+from .path import SVGPath
+from .path_d import SVGPathDefinition
+from ..selecting.bbox import SVGBoundingBox
 
 
 def testParsing():

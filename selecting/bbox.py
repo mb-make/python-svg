@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from element import SVGElement
+from ..dom.element import SVGElement
 
 
 #
