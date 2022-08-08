@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+#
+# Load a template and test content extraction from a test SVG
+#
 
 import os
 
@@ -11,23 +14,35 @@ fn_target = os.path.join(here, "test_target.svg")
 fn_template = os.path.join(here, "test_template.svg")
 
 
-#
-# Load a template and test content extraction from a test SVG
-#
-if __name__ == "__main__":
+def test_template_loading():
+    svg = SVGTemplate(filename=fn_template, debug=True)
+    rects = svg.getElementsByTagName("rect")
+    paths = svg.getElementsByTagName("path")
+    assert(len(rects) == 4)
+    assert(len(paths) == 7)
+
+
+def test_target_loading():
+    svg = SVGReader(filename=fn_target, debug=True)
+    rects = svg.getElementsByTagName("rect")
+    paths = svg.getElementsByTagName("path")
+    assert(len(rects) == 0)
+    assert(len(paths) == 8)
+
+
+def test_template_application():
     # Load template
     print("Loading template...")
-    template = SVGTemplate(filename=fn_template, debug=True)
+    template = SVGTemplate(filename=fn_template, debug=False)
     print(template)
 
     # Load target
     print("Loading target SVG...")
-    target = SVGParser(filename=fn_target, debug=True)
+    target = SVGReader(filename=fn_target, debug=False)
     print(target)
 
     # Apply template
     print("Extracting content from target using template...")
     results = template.apply(target)
     print(results)
-
     # TODO: evaluate
