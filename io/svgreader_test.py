@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import os
+
 from ..io.svgreader import SVGReader
 from ..dom.element import SVGElement
 from ..dom.path import SVGPath
