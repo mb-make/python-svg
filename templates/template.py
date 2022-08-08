@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from svg import SVGReader
-from rect import SVGRect
-from bbox import SVGBoundingBox
+from ..io.svgreader import SVGReader
+from ..dom.rect import SVGRect
+from ..selecting.bbox import SVGBoundingBox
 
 
 #

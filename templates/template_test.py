@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
-import sys
-sys.path.append("..")
-from template import SVGTemplate
-from svg import SVGReader
+# import sys
+# sys.path.append("..")
+
+from .template import SVGTemplate
+from ..io.svgreader import SVGReader
 
 
 #
